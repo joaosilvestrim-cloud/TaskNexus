@@ -3,6 +3,7 @@
  * Carrega todos os dados do usuário após autenticação.
  */
 import { useEffect, useState } from 'react';
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { projectsApi, sectionsApi, labelsApi, tasksApi, filtersApi } from '../lib/api';
 import { useStore } from '../store/useStore';
@@ -49,7 +50,7 @@ export function useSupabaseSync() {
     });
 
     // Listen to auth state changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       const u = session?.user;
       if (u) {
         setUser({ id: u.id, email: u.email ?? '' });

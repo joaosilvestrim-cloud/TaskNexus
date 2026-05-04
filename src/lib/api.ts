@@ -97,7 +97,7 @@ export const labelsApi = {
   async list(): Promise<Label[]> {
     const { data, error } = await supabase.from('labels').select('*').order('name');
     if (error) throw error;
-    return (data ?? []).map(r => ({ id: r.id, name: r.name, color: r.color }));
+    return (data ?? []).map((r: Record<string, string>) => ({ id: r.id, name: r.name, color: r.color }));
   },
 
   async create(name: string, color: string): Promise<Label> {
@@ -232,7 +232,7 @@ export const filtersApi = {
   async list(): Promise<SavedFilter[]> {
     const { data, error } = await supabase.from('saved_filters').select('*').order('name');
     if (error) throw error;
-    return (data ?? []).map(r => ({ id: r.id, name: r.name, query: r.query, color: r.color }));
+    return (data ?? []).map((r: Record<string, string>) => ({ id: r.id, name: r.name, query: r.query, color: r.color }));
   },
 
   async create(name: string, query: string, color: string): Promise<SavedFilter> {
