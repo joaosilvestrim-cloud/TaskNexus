@@ -92,7 +92,7 @@ export const useStore = create<AppState>()(
         { id: uuid(), name: 'Urgente Hoje', query: 'hoje & p1', color: '#ef4444' },
         { id: uuid(), name: 'Trabalho Hoje', query: 'hoje & #Trabalho', color: '#3b82f6' },
       ],
-      activeView: 'inbox',
+      activeView: 'kanban' as const,
       selectedTaskId: null,
       sidebarCollapsed: false,
 
@@ -109,6 +109,7 @@ export const useStore = create<AppState>()(
           projectId: partial.projectId ?? null,
           sectionId: partial.sectionId ?? null,
           priority: partial.priority ?? 'p4',
+          status: partial.status ?? 'backlog',
           labelIds: partial.labelIds ?? [],
           dueDate: partial.dueDate ?? null,
           dueTime: partial.dueTime ?? null,

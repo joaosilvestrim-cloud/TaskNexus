@@ -143,6 +143,7 @@ export const tasksApi = {
         project_id: t.projectId,
         section_id: t.sectionId,
         priority: t.priority,
+        status: t.status ?? 'backlog',
         due_date: t.dueDate,
         due_time: t.dueTime,
         completed: t.completed,
@@ -178,6 +179,7 @@ export const tasksApi = {
       dbChanges.completed = changes.completed;
       dbChanges.completed_at = changes.completed ? new Date().toISOString() : null;
     }
+    if (changes.status !== undefined) dbChanges.status = changes.status;
     if (changes.recurrence !== undefined) dbChanges.recurrence = changes.recurrence;
     if (changes.reminders !== undefined) dbChanges.reminders = changes.reminders;
     if (changes.order !== undefined) dbChanges.sort_order = changes.order;
@@ -297,6 +299,7 @@ function dbToTask(r: Record<string, unknown>): Task {
     projectId: (r.project_id ?? null) as string | null,
     sectionId: (r.section_id ?? null) as string | null,
     priority: r.priority as Task['priority'],
+    status: (r.status ?? 'backlog') as Task['status'],
     labelIds,
     dueDate: (r.due_date ?? null) as string | null,
     dueTime: (r.due_time ?? null) as string | null,

@@ -6,6 +6,7 @@ import { ProjectView } from '../projects/ProjectView';
 import { LabelView } from '../tasks/LabelView';
 import { FilterView } from '../tasks/FilterView';
 import { TaskDetail } from '../tasks/TaskDetail';
+import { KanbanGlobal } from '../kanban/KanbanGlobal';
 
 export function MainContent() {
   const { activeView, projects, selectedTaskId } = useStore();
@@ -14,6 +15,7 @@ export function MainContent() {
     if (activeView === 'inbox') return <InboxView />;
     if (activeView === 'today') return <TodayView />;
     if (activeView === 'upcoming') return <UpcomingView />;
+    if (activeView === 'kanban') return <KanbanGlobal />;
 
     if (typeof activeView === 'object') {
       if (activeView.type === 'project') {
@@ -24,12 +26,12 @@ export function MainContent() {
       if (activeView.type === 'filter') return <FilterView filterId={activeView.id} />;
     }
 
-    return <InboxView />;
+    return <KanbanGlobal />;
   };
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <main className="flex-1 overflow-y-auto">
+    <div className="flex flex-1 overflow-hidden bg-[#1a1b23]">
+      <main className="flex-1 overflow-y-auto flex flex-col">
         {renderView()}
       </main>
       {selectedTaskId && <TaskDetail />}

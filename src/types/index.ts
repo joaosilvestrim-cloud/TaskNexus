@@ -1,4 +1,5 @@
 export type Priority = 'p1' | 'p2' | 'p3' | 'p4';
+export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'done';
 
 export type RecurrenceType =
   | 'none'
@@ -44,6 +45,7 @@ export interface Task {
   labelIds: string[];
   dueDate: string | null;   // ISO date string
   dueTime: string | null;   // "HH:mm"
+  status: TaskStatus;
   completed: boolean;
   completedAt: string | null;
   subtasks: SubTask[];
@@ -88,6 +90,7 @@ export type NavView =
   | 'inbox'
   | 'today'
   | 'upcoming'
+  | 'kanban'
   | { type: 'project'; id: string }
   | { type: 'label'; id: string }
   | { type: 'filter'; id: string };

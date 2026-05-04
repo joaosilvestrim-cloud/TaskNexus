@@ -3,10 +3,9 @@
 @layer base {
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    padding: 0;
-    background: #f8f9fa;
-    color: #1a1a2e;
+    margin: 0; padding: 0;
+    background: #1a1b23;
+    color: #e2e4ea;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
@@ -16,6 +15,6 @@
 @layer utilities {
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 9999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+  ::-webkit-scrollbar-thumb { background: #3a3b4a; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #4a4b5a; }
 }

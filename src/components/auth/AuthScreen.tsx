@@ -37,7 +37,7 @@ export function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#1a1b23] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
@@ -49,15 +49,15 @@ export function AuthScreen() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+        <div className="bg-[#22232e] rounded-2xl shadow-xl border border-[#2e2f3d] p-8">
           {/* Tabs */}
-          <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
+          <div className="flex bg-[#1a1b23] rounded-xl p-1 mb-6">
             {(['login', 'signup'] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => { setMode(m); setError(null); setSuccess(null); }}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all
-                  ${mode === m ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  ${mode === m ? 'bg-[#2e2f3d] text-indigo-400 shadow-sm' : 'text-gray-600 hover:text-gray-400'}`}
               >
                 {m === 'login' ? 'Entrar' : 'Criar Conta'}
               </button>
@@ -73,7 +73,7 @@ export function AuthScreen() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="seu@email.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#3a3b4a] bg-[#1a1b23] text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-600"
               />
             </div>
 
@@ -87,7 +87,7 @@ export function AuthScreen() {
                   required
                   minLength={6}
                   placeholder="••••••••"
-                  className="w-full px-4 py-2.5 pr-11 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                  className="w-full px-4 py-2.5 pr-11 rounded-xl border border-[#3a3b4a] bg-[#1a1b23] text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-600"
                 />
                 <button
                   type="button"
