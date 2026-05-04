@@ -30,7 +30,7 @@ export function QuickAdd({ projectId = null, sectionId = null, placeholder }: Pr
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!value.trim()) { setOpen(false); return; }
 
@@ -53,7 +53,7 @@ export function QuickAdd({ projectId = null, sectionId = null, placeholder }: Pr
       if (found) {
         labelIds.push(found.id);
       } else {
-        const newLabel = addLabel(name, '#6366f1');
+        const newLabel = await addLabel(name, '#6366f1');
         labelIds.push(newLabel.id);
       }
     }

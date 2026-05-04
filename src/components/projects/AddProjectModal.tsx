@@ -13,10 +13,10 @@ export function AddProjectModal({ onClose }: Props) {
   const [name, setName] = useState('');
   const [color, setColor] = useState<ProjectColor>('blue');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    const p = addProject(name.trim(), color);
+    const p = await addProject(name.trim(), color);
     setActiveView({ type: 'project', id: p.id });
     onClose();
   };
