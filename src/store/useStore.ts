@@ -6,13 +6,37 @@ import {
 } from '../lib/api';
 import type {
   Task, Project, Section, Label, SavedFilter, NavView,
-  ProjectColor, ProjectView,
+  ProjectColor, ProjectView, KanbanColumn,
 } from '../types';
+
+const DEFAULT_COLUMNS: KanbanColumn[] = [
+  { id: 'backlog',     label: 'Backlog',      color: 'text-gray-400',   accent: 'bg-gray-400',   order: 0, isDefault: true },
+  { id: 'todo',        label: 'A fazer',      color: 'text-blue-400',   accent: 'bg-blue-500',   order: 1, isDefault: true },
+  { id: 'in_progress', label: 'Em progresso', color: 'text-yellow-400', accent: 'bg-yellow-400', order: 2, isDefault: true },
+  { id: 'done',        label: 'Concluído',    color: 'text-green-400',  accent: 'bg-green-500',  order: 3, isDefault: true },
+];
+
+function loadColumns(): KanbanColumn[] {
+  try {
+    const raw = localStorage.getItem('kanban_columns');
+    if (raw) return JSON.parse(raw) as KanbanColumn[];
+  } catch { /* ignore */ }
+  return DEFAULT_COLUMNS;
+}
+
+function saveColumns(cols: KanbanColumn[]) {
+  localStorage.setItem('kanban_columns', JSON.stringify(cols));
+}
 
 interface AppState {
   tasks: Task[];
   projects: Project[];
   sections: Section[];
+  kanbanColumns: KanbanColumn[];
+  addKanbanColumn: (label: string) => void;
+  updateKanbanColumn: (id: string, changes: Partial<KanbanColumn>) => void;
+  deleteKanbanColumn: (id: string) => void;
+  reorderKanbanColumns: (cols: KanbanColumn[]) => void;
   labels: Label[];
   filters: SavedFilter[];
   activeView: NavView;
@@ -58,9 +82,42 @@ export const useStore = create<AppState>()((set, get) => ({
   sections: [],
   labels: [],
   filters: [],
+  kanbanColumns: loadColumns(),
   activeView: 'kanban' as const,
   selectedTaskId: null,
   theme: (localStorage.getItem('theme') as 'dark' | 'light') ?? 'dark',
+
+  addKanbanColumn: (label) => {
+    const cols = get().kanbanColumns;
+    const newCol: KanbanColumn = {
+      id: uuid(),
+      label,
+      color: 'text-purple-400',
+      accent: 'bg-purple-400',
+      order: cols.length,
+      isDefault: false,
+    };
+    const next = [...cols, newCol];
+    saveColumns(next);
+    set({ kanbanColumns: next });
+  },
+
+  updateKanbanColumn: (id, changes) => {
+    const next = get().kanbanColumns.map(c => c.id === id ? { ...c, ...changes } : c);
+    saveColumns(next);
+    set({ kanbanColumns: next });
+  },
+
+  deleteKanbanColumn: (id) => {
+    const next = get().kanbanColumns.filter(c => c.id !== id);
+    saveColumns(next);
+    set({ kanbanColumns: next });
+  },
+
+  reorderKanbanColumns: (cols) => {
+    saveColumns(cols);
+    set({ kanbanColumns: cols });
+  },
 
   setActiveView: (view) => set({ activeView: view, selectedTaskId: null }),
   setSelectedTask: (id) => set({ selectedTaskId: id }),

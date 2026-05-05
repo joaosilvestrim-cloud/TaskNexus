@@ -1,5 +1,14 @@
 export type Priority = 'p1' | 'p2' | 'p3' | 'p4';
-export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'done';
+export type TaskStatus = string; // built-ins: 'backlog' | 'todo' | 'in_progress' | 'done' + custom
+
+export interface KanbanColumn {
+  id: string;          // slug, e.g. 'backlog', 'todo', 'in_progress', 'done', or uuid for custom
+  label: string;
+  color: string;       // tailwind text class, e.g. 'text-gray-400'
+  accent: string;      // tailwind bg class, e.g. 'bg-gray-400'
+  order: number;
+  isDefault: boolean;  // built-in columns can't be deleted
+}
 
 export type RecurrenceType =
   | 'none'
