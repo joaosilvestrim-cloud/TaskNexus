@@ -82,7 +82,7 @@ export function QuickAdd({ projectId = null, sectionId = null, placeholder }: Pr
     return (
       <button
         onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
-        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all group"
+        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--c-text3)] hover:text-indigo-600 hover:bg-[var(--c-active)] rounded-lg transition-all group"
       >
         <Plus size={16} className="group-hover:text-indigo-600" />
         {placeholder ?? 'Adicionar tarefa'}
@@ -91,14 +91,14 @@ export function QuickAdd({ projectId = null, sectionId = null, placeholder }: Pr
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl border-2 border-indigo-400 bg-white shadow-lg p-3 space-y-2">
+    <form onSubmit={handleSubmit} className="rounded-xl border-2 border-indigo-400 bg-[var(--c-card)] shadow-lg p-3 space-y-2">
       <input
         ref={inputRef}
         value={value}
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder='Ex: "Enviar relatório amanhã às 14h #Trabalho @urgente p1"'
-        className="w-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none"
+        className="w-full text-sm text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none bg-transparent"
       />
 
       {/* NLP preview */}
@@ -137,7 +137,7 @@ export function QuickAdd({ projectId = null, sectionId = null, placeholder }: Pr
 
       <div className="flex items-center justify-end gap-2 pt-1">
         <button type="button" onClick={() => { setOpen(false); setValue(''); setParsed(null); }}
-          className="px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 rounded-lg">
+          className="px-3 py-1.5 text-sm text-[var(--c-text2)] hover:bg-[var(--c-hover)] rounded-lg">
           Cancelar
         </button>
         <button type="submit" disabled={!value.trim()}

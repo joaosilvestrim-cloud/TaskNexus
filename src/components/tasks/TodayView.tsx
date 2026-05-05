@@ -28,8 +28,8 @@ export function TodayView() {
           </span>
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Hoje</h1>
-          <p className="text-sm text-gray-500 mt-0.5 capitalize">{todayLabel}</p>
+          <h1 className="text-xl font-bold text-[var(--c-text1)]">Hoje</h1>
+          <p className="text-sm text-[var(--c-text2)] mt-0.5 capitalize">{todayLabel}</p>
         </div>
       </div>
       <TaskList

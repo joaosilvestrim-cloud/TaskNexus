@@ -13,8 +13,8 @@ export function InboxView() {
       <div className="flex items-center gap-3 mb-6">
         <Inbox size={24} className="text-indigo-600" />
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Caixa de Entrada</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-xl font-bold text-[var(--c-text1)]">Caixa de Entrada</h1>
+          <p className="text-sm text-[var(--c-text2)] mt-0.5">
             {inboxTasks.filter(t => !t.completed).length} tarefa{inboxTasks.filter(t => !t.completed).length !== 1 ? 's' : ''} pendente{inboxTasks.filter(t => !t.completed).length !== 1 ? 's' : ''}
           </p>
         </div>

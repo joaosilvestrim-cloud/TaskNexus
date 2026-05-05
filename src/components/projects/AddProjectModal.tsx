@@ -23,16 +23,16 @@ export function AddProjectModal({ onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-96 p-6">
+      <div className="bg-[var(--c-card)] rounded-2xl shadow-2xl w-96 p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-semibold text-gray-900">Novo Projeto</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <h2 className="font-semibold text-[var(--c-text1)]">Novo Projeto</h2>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--c-hover)] text-[var(--c-text3)]">
             <X size={18} />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+            <label className="block text-sm font-medium text-[var(--c-text2)] mb-1">Nome</label>
             <input
               autoFocus
               value={name}
@@ -42,7 +42,7 @@ export function AddProjectModal({ onClose }: Props) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Cor</label>
+            <label className="block text-sm font-medium text-[var(--c-text2)] mb-2">Cor</label>
             <div className="flex flex-wrap gap-2">
               {COLORS.map((c) => (
                 <button
@@ -57,7 +57,7 @@ export function AddProjectModal({ onClose }: Props) {
           </div>
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
+              className="flex-1 py-2 rounded-lg border border-[var(--c-border)] text-sm text-[var(--c-text2)] hover:bg-[var(--c-hover)]">
               Cancelar
             </button>
             <button type="submit"

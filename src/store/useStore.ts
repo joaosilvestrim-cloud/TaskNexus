@@ -17,9 +17,11 @@ interface AppState {
   filters: SavedFilter[];
   activeView: NavView;
   selectedTaskId: string | null;
+  theme: 'dark' | 'light';
 
   setActiveView: (view: NavView) => void;
   setSelectedTask: (id: string | null) => void;
+  toggleTheme: () => void;
 
   addTask: (partial: Partial<Task> & { title: string }) => Promise<Task>;
   updateTask: (id: string, changes: Partial<Task>) => void;
@@ -58,9 +60,16 @@ export const useStore = create<AppState>()((set, get) => ({
   filters: [],
   activeView: 'kanban' as const,
   selectedTaskId: null,
+  theme: (localStorage.getItem('theme') as 'dark' | 'light') ?? 'dark',
 
   setActiveView: (view) => set({ activeView: view, selectedTaskId: null }),
   setSelectedTask: (id) => set({ selectedTaskId: id }),
+  toggleTheme: () => set((s) => {
+    const next = s.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    document.documentElement.classList.toggle('dark', next === 'dark');
+    return { theme: next };
+  }),
 
   // ── Tasks ────────────────────────────────────────────────────────────────
   addTask: async (partial) => {

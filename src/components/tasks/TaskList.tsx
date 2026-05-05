@@ -20,7 +20,7 @@ export function TaskList({
   return (
     <div className="space-y-0.5">
       {active.length === 0 && !showQuickAdd && emptyMessage && (
-        <p className="text-sm text-gray-400 py-4 text-center">{emptyMessage}</p>
+        <p className="text-sm text-[var(--c-text3)] py-4 text-center">{emptyMessage}</p>
       )}
       {active.map((t) => (
         <TaskRow key={t.id} task={t} showProject={showProject} />
@@ -34,7 +34,7 @@ export function TaskList({
 
       {done.length > 0 && (
         <details className="mt-3">
-          <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600 py-2 select-none">
+          <summary className="text-xs text-[var(--c-text3)] cursor-pointer hover:text-[var(--c-text2)] py-2 select-none">
             {done.length} concluída{done.length > 1 ? 's' : ''}
           </summary>
           <div className="mt-1 space-y-0.5">

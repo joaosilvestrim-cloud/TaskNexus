@@ -30,7 +30,7 @@ export function MainContent() {
   };
 
   return (
-    <div className="flex flex-1 overflow-hidden bg-[#1a1b23]">
+    <div className="flex flex-1 overflow-hidden bg-[var(--c-bg)]">
       <main className="flex-1 overflow-y-auto flex flex-col">
         {renderView()}
       </main>

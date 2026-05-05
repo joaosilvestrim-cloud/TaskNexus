@@ -63,12 +63,12 @@ export function ProjectView({ project }: Props) {
                   value={nameVal}
                   onChange={(e) => setNameVal(e.target.value)}
                   onBlur={handleRename}
-                  className="text-xl font-bold text-gray-900 focus:outline-none border-b-2 border-indigo-400 bg-transparent"
+                  className="text-xl font-bold text-[var(--c-text1)] focus:outline-none border-b-2 border-indigo-400 bg-transparent"
                 />
               </form>
             ) : (
               <h1
-                className="text-xl font-bold text-gray-900 cursor-pointer hover:text-indigo-700"
+                className="text-xl font-bold text-[var(--c-text1)] cursor-pointer hover:text-indigo-600"
                 onDoubleClick={() => { setEditingName(true); setNameVal(project.name); }}
               >
                 {project.name}
@@ -80,14 +80,14 @@ export function ProjectView({ project }: Props) {
             {/* View toggle */}
             <button
               onClick={() => updateProject(project.id, { view: 'list' })}
-              className={`p-1.5 rounded-lg transition-all ${project.view === 'list' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-400 hover:bg-gray-100'}`}
+              className={`p-1.5 rounded-lg transition-all ${project.view === 'list' ? 'bg-indigo-100 text-indigo-600' : 'text-[var(--c-text3)] hover:bg-[var(--c-hover)]'}`}
               title="Visualização em Lista"
             >
               <LayoutList size={16} />
             </button>
             <button
               onClick={() => updateProject(project.id, { view: 'board' })}
-              className={`p-1.5 rounded-lg transition-all ${project.view === 'board' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-400 hover:bg-gray-100'}`}
+              className={`p-1.5 rounded-lg transition-all ${project.view === 'board' ? 'bg-indigo-100 text-indigo-600' : 'text-[var(--c-text3)] hover:bg-[var(--c-hover)]'}`}
               title="Visualização em Quadro (Kanban)"
             >
               <LayoutGrid size={16} />
@@ -97,15 +97,15 @@ export function ProjectView({ project }: Props) {
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100"
+                className="p-1.5 rounded-lg text-gray-400 hover:bg-[var(--c-hover)]"
               >
                 <MoreHorizontal size={16} />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-xl shadow-lg py-1 w-44 z-20">
+                <div className="absolute right-0 top-8 bg-[var(--c-card)] border border-[var(--c-border)] rounded-xl shadow-lg py-1 w-44 z-20">
                   <button
                     onClick={() => { setEditingName(true); setNameVal(project.name); setMenuOpen(false); }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[var(--c-text1)] hover:bg-[var(--c-hover)]"
                   >
                     <Pencil size={14} /> Renomear
                   </button>
@@ -144,15 +144,15 @@ export function ProjectView({ project }: Props) {
                   <div className="flex items-center gap-2 mb-2 group">
                     <button
                       onClick={() => updateSection(sec.id, { collapsed: !sec.collapsed })}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-[var(--c-text3)] hover:text-[var(--c-text2)]"
                     >
                       {sec.collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                     </button>
-                    <h3 className="text-sm font-semibold text-gray-700">{sec.name}</h3>
-                    <span className="text-xs text-gray-400 ml-1">
+                    <h3 className="text-sm font-semibold text-[var(--c-text1)]">{sec.name}</h3>
+                    <span className="text-xs text-[var(--c-text3)] ml-1">
                       {secTasks.filter((t) => !t.completed).length}
                     </span>
-                    <div className="flex-1 h-px bg-gray-100 ml-2" />
+                    <div className="flex-1 h-px bg-[var(--c-border)] ml-2" />
                     <button
                       onClick={() => deleteSection(sec.id)}
                       className="opacity-0 group-hover:opacity-100 p-1 rounded text-gray-300 hover:text-red-400 transition-all"
@@ -193,7 +193,7 @@ export function ProjectView({ project }: Props) {
             ) : (
               <button
                 onClick={() => setAddingSection(true)}
-                className="flex items-center gap-2 text-sm text-gray-400 hover:text-indigo-600 transition-colors"
+                className="flex items-center gap-2 text-sm text-[var(--c-text3)] hover:text-indigo-600 transition-colors"
               >
                 <Plus size={14} /> Adicionar Seção
               </button>

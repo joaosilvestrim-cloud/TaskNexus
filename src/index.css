@@ -1,13 +1,47 @@
 @import "tailwindcss";
 
+/* ── Tema Claro (padrão) ─────────────────────────────────────────────────── */
+:root {
+  --c-bg:       #f0f2f5;
+  --c-sidebar:  #ffffff;
+  --c-card:     #ffffff;
+  --c-elevated: #f8fafc;
+  --c-hover:    #f1f5f9;
+  --c-active:   #eef2ff;
+  --c-border:   #e2e8f0;
+  --c-border2:  #cbd5e1;
+  --c-text1:    #1e293b;
+  --c-text2:    #475569;
+  --c-text3:    #94a3b8;
+  --c-text4:    #e2e8f0;
+}
+
+/* ── Tema Escuro ─────────────────────────────────────────────────────────── */
+.dark {
+  --c-bg:       #1a1b23;
+  --c-sidebar:  #16171e;
+  --c-card:     #22232e;
+  --c-elevated: #1e1f28;
+  --c-hover:    #2a2b36;
+  --c-active:   #2e2f3d;
+  --c-border:   #2e2f3d;
+  --c-border2:  #3a3b4a;
+  --c-text1:    #e2e4ea;
+  --c-text2:    #9ca3af;
+  --c-text3:    #6b7280;
+  --c-text4:    #374151;
+}
+
 @layer base {
   * { box-sizing: border-box; }
+  html { height: 100%; }
   body {
     margin: 0; padding: 0;
-    background: #1a1b23;
-    color: #e2e4ea;
+    background: var(--c-bg);
+    color: var(--c-text1);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
+    height: 100%;
   }
   #root { height: 100vh; display: flex; }
 }
@@ -15,6 +49,13 @@
 @layer utilities {
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #3a3b4a; border-radius: 9999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #4a4b5a; }
+  ::-webkit-scrollbar-thumb { background: var(--c-border2); border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--c-text3); }
+
+  /* Input/select theming for native elements */
+  input[type="date"],
+  input[type="time"],
+  select {
+    color-scheme: inherit;
+  }
 }

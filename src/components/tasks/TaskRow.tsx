@@ -36,7 +36,7 @@ export function TaskRow({ task, showProject }: Props) {
     <div
       onClick={() => setSelectedTask(isSelected ? null : task.id)}
       className={`group flex items-start gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all
-        ${isSelected ? 'bg-indigo-50 ring-1 ring-indigo-200' : 'hover:bg-gray-50'}
+        ${isSelected ? 'bg-[var(--c-active)] ring-1 ring-indigo-300' : 'hover:bg-[var(--c-hover)]'}
         ${task.completed ? 'opacity-50' : ''}`}
     >
       {/* Checkbox */}
@@ -51,7 +51,7 @@ export function TaskRow({ task, showProject }: Props) {
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm leading-snug ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+        <p className={`text-sm leading-snug ${task.completed ? 'line-through text-[var(--c-text3)]' : 'text-[var(--c-text1)]'}`}>
           {task.title}
         </p>
 
@@ -88,13 +88,13 @@ export function TaskRow({ task, showProject }: Props) {
 
           {/* Project name (when in Today/Upcoming views) */}
           {showProject && project && (
-            <span className="text-xs text-gray-400">· {project.name}</span>
+            <span className="text-xs text-[var(--c-text3)]">· {project.name}</span>
           )}
         </div>
       </div>
 
       <ChevronRight size={14}
-        className={`mt-1 shrink-0 transition-opacity ${isSelected ? 'text-indigo-400 opacity-100' : 'opacity-0 group-hover:opacity-100 text-gray-300'}`}
+        className={`mt-1 shrink-0 transition-opacity ${isSelected ? 'text-indigo-400 opacity-100' : 'opacity-0 group-hover:opacity-100 text-[var(--c-text3)]'}`}
       />
     </div>
   );

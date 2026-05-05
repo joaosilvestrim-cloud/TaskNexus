@@ -27,8 +27,8 @@ export function UpcomingView() {
       <div className="flex items-center gap-3 mb-6">
         <CalendarDays size={24} className="text-blue-600" />
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Em Breve</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Próximos {DAYS_AHEAD} dias</p>
+          <h1 className="text-xl font-bold text-[var(--c-text1)]">Em Breve</h1>
+          <p className="text-sm text-[var(--c-text2)] mt-0.5">Próximos {DAYS_AHEAD} dias</p>
         </div>
       </div>
 
@@ -42,16 +42,16 @@ export function UpcomingView() {
             <div key={day.toISOString()}>
               <div className="flex items-center gap-2 mb-2">
                 <h2 className={`text-sm font-semibold capitalize
-                  ${isToday ? 'text-green-600' : 'text-gray-700'}`}>
+                  ${isToday ? 'text-green-600' : 'text-[var(--c-text1)]'}`}>
                   {isToday ? 'Hoje' : format(day, "EEEE, d 'de' MMMM", { locale: ptBR })}
                 </h2>
-                <div className="flex-1 h-px bg-gray-100" />
+                <div className="flex-1 h-px bg-[var(--c-border)]" />
                 {dayTasks.length > 0 && (
-                  <span className="text-xs text-gray-400">{dayTasks.length}</span>
+                  <span className="text-xs text-[var(--c-text3)]">{dayTasks.length}</span>
                 )}
               </div>
               {dayTasks.length === 0
-                ? <p className="text-xs text-gray-300 pl-2">Nenhuma tarefa</p>
+                ? <p className="text-xs text-[var(--c-text4)] pl-2">Nenhuma tarefa</p>
                 : dayTasks.map((t) => <TaskRow key={t.id} task={t} showProject />)
               }
             </div>
@@ -61,9 +61,9 @@ export function UpcomingView() {
         {beyond.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <h2 className="text-sm font-semibold text-gray-500">Mais tarde</h2>
-              <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-xs text-gray-400">{beyond.length}</span>
+              <h2 className="text-sm font-semibold text-[var(--c-text2)]">Mais tarde</h2>
+              <div className="flex-1 h-px bg-[var(--c-border)]" />
+              <span className="text-xs text-[var(--c-text3)]">{beyond.length}</span>
             </div>
             {beyond.map((t) => <TaskRow key={t.id} task={t} showProject />)}
           </div>

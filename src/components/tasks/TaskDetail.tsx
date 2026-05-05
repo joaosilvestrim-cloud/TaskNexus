@@ -44,20 +44,20 @@ export function TaskDetail() {
   };
 
   return (
-    <aside className="w-96 bg-white border-l border-gray-200 flex flex-col overflow-y-auto shrink-0">
+    <aside className="w-96 bg-[var(--c-card)] border-l border-[var(--c-border)] flex flex-col overflow-y-auto shrink-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
-        <span className="text-xs text-gray-400 font-medium">Detalhes da Tarefa</span>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--c-border)] sticky top-0 bg-[var(--c-card)] z-10">
+        <span className="text-xs text-[var(--c-text3)] font-medium">Detalhes da Tarefa</span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => { deleteTask(task.id); }}
-            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-red-50 text-[var(--c-text3)] hover:text-red-500 transition-colors"
           >
             <Trash2 size={15} />
           </button>
           <button
             onClick={() => setSelectedTask(null)}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"
+            className="p-1.5 rounded-lg hover:bg-[var(--c-hover)] text-[var(--c-text3)]"
           >
             <X size={15} />
           </button>
@@ -76,8 +76,8 @@ export function TaskDetail() {
             <textarea
               value={task.title}
               onChange={(e) => updateTask(task.id, { title: e.target.value })}
-              className={`flex-1 text-base font-medium text-gray-900 focus:outline-none resize-none bg-transparent leading-snug
-                ${task.completed ? 'line-through text-gray-400' : ''}`}
+              className={`flex-1 text-base font-medium text-[var(--c-text1)] focus:outline-none resize-none bg-transparent leading-snug
+                ${task.completed ? 'line-through text-[var(--c-text3)]' : ''}`}
               rows={2}
             />
           </div>
@@ -86,14 +86,14 @@ export function TaskDetail() {
         {/* Description */}
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <AlignLeft size={14} className="text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Descrição</span>
+            <AlignLeft size={14} className="text-[var(--c-text3)]" />
+            <span className="text-xs font-medium text-[var(--c-text2)]">Descrição</span>
           </div>
           <textarea
             value={task.description}
             onChange={(e) => updateTask(task.id, { description: e.target.value })}
             placeholder="Adicionar descrição..."
-            className="w-full text-sm text-gray-700 focus:outline-none resize-none bg-gray-50 rounded-lg px-3 py-2 placeholder-gray-400"
+            className="w-full text-sm text-[var(--c-text1)] focus:outline-none resize-none bg-[var(--c-elevated)] rounded-lg px-3 py-2 placeholder-[var(--c-text3)]"
             rows={3}
           />
         </div>
@@ -101,21 +101,21 @@ export function TaskDetail() {
         {/* Due date & time */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Calendar size={14} className="text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Prazo</span>
+            <Calendar size={14} className="text-[var(--c-text3)]" />
+            <span className="text-xs font-medium text-[var(--c-text2)]">Prazo</span>
           </div>
           <div className="flex gap-2">
             <input
               type="date"
               value={task.dueDate ?? ''}
               onChange={(e) => updateTask(task.id, { dueDate: e.target.value || null })}
-              className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="flex-1 text-sm px-3 py-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text1)] focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
             <input
               type="time"
               value={task.dueTime ?? ''}
               onChange={(e) => updateTask(task.id, { dueTime: e.target.value || null })}
-              className="w-28 text-sm px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="w-28 text-sm px-3 py-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text1)] focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
           </div>
         </div>
@@ -123,8 +123,8 @@ export function TaskDetail() {
         {/* Priority */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Flag size={14} className="text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Prioridade</span>
+            <Flag size={14} className="text-[var(--c-text3)]" />
+            <span className="text-xs font-medium text-[var(--c-text2)]">Prioridade</span>
           </div>
           <div className="flex gap-2">
             {PRIORITIES.map((p) => {
@@ -136,7 +136,7 @@ export function TaskDetail() {
                   className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all
                     ${task.priority === p
                       ? `${cfg.bg} ${cfg.color} ring-1 ${cfg.ring}`
-                      : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                      : 'bg-[var(--c-elevated)] text-[var(--c-text3)] hover:bg-[var(--c-hover)]'}`}
                 >
                   {cfg.label}
                 </button>
@@ -148,13 +148,13 @@ export function TaskDetail() {
         {/* Project & Section */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-medium text-gray-500">Projeto / Seção</span>
+            <span className="text-xs font-medium text-[var(--c-text2)]">Projeto / Seção</span>
           </div>
           <div className="flex gap-2">
             <select
               value={task.projectId ?? ''}
               onChange={(e) => updateTask(task.id, { projectId: e.target.value || null, sectionId: null })}
-              className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+              className="flex-1 text-sm px-3 py-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text1)] focus:outline-none focus:ring-2 focus:ring-indigo-300"
             >
               <option value="">Caixa de Entrada</option>
               {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -163,7 +163,7 @@ export function TaskDetail() {
               <select
                 value={task.sectionId ?? ''}
                 onChange={(e) => updateTask(task.id, { sectionId: e.target.value || null })}
-                className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+                className="flex-1 text-sm px-3 py-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text1)] focus:outline-none focus:ring-2 focus:ring-indigo-300"
               >
                 <option value="">Sem seção</option>
                 {sections.filter((s) => s.projectId === task.projectId).map((s) => (
@@ -177,8 +177,8 @@ export function TaskDetail() {
         {/* Recurrence */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <RepeatIcon size={14} className="text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Recorrência</span>
+            <RepeatIcon size={14} className="text-[var(--c-text3)]" />
+            <span className="text-xs font-medium text-[var(--c-text2)]">Recorrência</span>
           </div>
           <select
             value={task.recurrence.type === 'none' ? 'none' : JSON.stringify(task.recurrence)}
@@ -186,7 +186,7 @@ export function TaskDetail() {
               const val = e.target.value;
               updateTask(task.id, { recurrence: val === 'none' ? { type: 'none' } : JSON.parse(val) });
             }}
-            className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+            className="w-full text-sm px-3 py-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text1)] focus:outline-none focus:ring-2 focus:ring-indigo-300"
           >
             {RECURRENCE_OPTIONS.map((opt) => (
               <option key={opt.label} value={opt.value.type === 'none' ? 'none' : JSON.stringify(opt.value)}>
@@ -199,8 +199,8 @@ export function TaskDetail() {
         {/* Labels */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Tag size={14} className="text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">Etiquetas</span>
+            <Tag size={14} className="text-[var(--c-text3)]" />
+            <span className="text-xs font-medium text-[var(--c-text2)]">Etiquetas</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {labels.map((l) => {
@@ -210,7 +210,7 @@ export function TaskDetail() {
                   key={l.id}
                   onClick={() => toggleLabel(l.id)}
                   className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all border
-                    ${active ? 'border-transparent' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
+                    ${active ? 'border-transparent' : 'border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text2)] hover:bg-[var(--c-hover)]'}`}
                   style={active ? { backgroundColor: l.color + '22', color: l.color, borderColor: l.color + '44' } : {}}
                 >
                   @{l.name}
@@ -223,8 +223,8 @@ export function TaskDetail() {
         {/* Subtasks */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <CheckSquare size={14} className="text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">
+            <CheckSquare size={14} className="text-[var(--c-text3)]" />
+            <span className="text-xs font-medium text-[var(--c-text2)]">
               Subtarefas {task.subtasks.length > 0 && `(${task.subtasks.filter(s => s.completed).length}/${task.subtasks.length})`}
             </span>
           </div>
@@ -237,7 +237,7 @@ export function TaskDetail() {
                     ? <CheckSquare size={15} className="text-indigo-400" />
                     : <Square size={15} />}
                 </button>
-                <span className={`flex-1 text-sm ${st.completed ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                <span className={`flex-1 text-sm ${st.completed ? 'line-through text-[var(--c-text3)]' : 'text-[var(--c-text1)]'}`}>
                   {st.title}
                 </span>
                 <button
@@ -255,7 +255,7 @@ export function TaskDetail() {
               value={newSubtask}
               onChange={(e) => setNewSubtask(e.target.value)}
               placeholder="Adicionar subtarefa..."
-              className="flex-1 text-sm text-gray-700 placeholder-gray-400 focus:outline-none bg-transparent border-b border-gray-200 pb-1 focus:border-indigo-400"
+              className="flex-1 text-sm text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none bg-transparent border-b border-[var(--c-border)] pb-1 focus:border-indigo-400"
             />
           </form>
         </div>

@@ -36,11 +36,11 @@ export function KanbanGlobal() {
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-[#2a2b36]">
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-[var(--c-border)]">
         <div className="w-5 h-5 grid grid-cols-2 gap-0.5">
-          {[0,1,2,3].map(i => <div key={i} className="bg-gray-500 rounded-sm" />)}
+          {[0,1,2,3].map(i => <div key={i} className="bg-[var(--c-text3)] rounded-sm" />)}
         </div>
-        <h1 className="text-base font-semibold text-gray-200">Kanban</h1>
+        <h1 className="text-base font-semibold text-[var(--c-text1)]">Kanban</h1>
       </div>
 
       {/* Board */}
@@ -62,11 +62,11 @@ export function KanbanGlobal() {
                   <span className={`text-xs font-semibold ${col.color}`}>
                     {col.label}
                   </span>
-                  <span className="text-xs text-gray-600 bg-[#2a2b36] px-1.5 py-0.5 rounded-full">
+                  <span className="text-xs text-[var(--c-text3)] bg-[var(--c-hover)] px-1.5 py-0.5 rounded-full">
                     {colTasks.length}
                   </span>
                 </div>
-                <button className="p-1 rounded hover:bg-[#2a2b36] text-gray-600 hover:text-gray-400">
+                <button className="p-1 rounded hover:bg-[var(--c-hover)] text-[var(--c-text3)] hover:text-[var(--c-text2)]">
                   <MoreHorizontal size={14} />
                 </button>
               </div>
@@ -87,24 +87,24 @@ export function KanbanGlobal() {
 
               {/* Add task */}
               {addingTo === col.id ? (
-                <div className="mt-2 bg-[#22232e] rounded-xl p-3 border border-[#3a3b4a]">
+                <div className="mt-2 bg-[var(--c-card)] rounded-xl p-3 border border-[var(--c-border2)]">
                   <input autoFocus value={newTitle} onChange={e => setNewTitle(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleAddTask(col.id); if (e.key === 'Escape') { setAddingTo(null); setNewTitle(''); } }}
                     placeholder="Nome da tarefa..."
-                    className="w-full bg-transparent text-sm text-gray-200 placeholder-gray-600 focus:outline-none"
+                    className="w-full bg-transparent text-sm text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none"
                   />
                   <div className="flex gap-2 mt-2">
                     <button onClick={() => handleAddTask(col.id)} className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700">
                       Salvar
                     </button>
-                    <button onClick={() => { setAddingTo(null); setNewTitle(''); }} className="px-3 py-1 text-gray-500 text-xs rounded-lg hover:bg-[#2a2b36]">
+                    <button onClick={() => { setAddingTo(null); setNewTitle(''); }} className="px-3 py-1 text-[var(--c-text2)] text-xs rounded-lg hover:bg-[var(--c-hover)]">
                       Cancelar
                     </button>
                   </div>
                 </div>
               ) : (
                 <button onClick={() => setAddingTo(col.id)}
-                  className="mt-2 flex items-center gap-2 w-full px-2 py-2 text-xs text-gray-600 hover:text-gray-400 hover:bg-[#22232e] rounded-xl transition-colors">
+                  className="mt-2 flex items-center gap-2 w-full px-2 py-2 text-xs text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-hover)] rounded-xl transition-colors">
                   <Plus size={13} /> Nova tarefa
                 </button>
               )}
@@ -143,7 +143,7 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject }:{
         <div key={key}>
           <div className="flex items-center gap-2 mb-1.5 px-1">
             <Calendar size={11} className="text-red-400" />
-            <span className="text-xs text-gray-500 font-medium">
+            <span className="text-xs text-[var(--c-text2)] font-medium">
               {key === 'sem-data' ? 'Sem data' : format(parseISO(key), "d 'de' MMM", { locale: ptBR })}
             </span>
           </div>
@@ -185,8 +185,8 @@ function TaskCard({ task, isSelected, onSelect, getProject }: {
       onClick={onSelect}
       className={`group rounded-xl p-3 border cursor-pointer transition-all select-none
         ${isSelected
-          ? 'bg-[#2a2b3d] border-indigo-600'
-          : 'bg-[#22232e] border-[#2e2f3d] hover:border-[#3a3b4a] hover:bg-[#25262f]'}
+          ? 'bg-[var(--c-active)] border-indigo-500'
+          : 'bg-[var(--c-card)] border-[var(--c-border)] hover:border-[var(--c-border2)] hover:bg-[var(--c-hover)]'}
         ${task.completed ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start gap-2">
@@ -194,19 +194,19 @@ function TaskCard({ task, isSelected, onSelect, getProject }: {
         <button
           onClick={e => { e.stopPropagation(); updateTask(task.id, { completed: !task.completed, status: !task.completed ? 'done' : 'backlog' }); }}
           className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors
-            ${task.completed ? 'bg-green-600 border-green-600' : 'border-gray-600 hover:border-gray-400'}`}
+            ${task.completed ? 'bg-green-600 border-green-600' : 'border-[var(--c-border2)] hover:border-[var(--c-text3)]'}`}
         >
           {task.completed && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 10 10"><path d="M1.5 5l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
         </button>
 
         <div className="flex-1 min-w-0">
-          <p className={`text-sm leading-snug ${task.completed ? 'line-through text-gray-600' : 'text-gray-200'}`}>
+          <p className={`text-sm leading-snug ${task.completed ? 'line-through text-[var(--c-text3)]' : 'text-[var(--c-text1)]'}`}>
             {task.title}
           </p>
           {project && (
             <div className="flex items-center gap-1 mt-1.5">
               <span className={`w-2 h-2 rounded-full shrink-0 ${PROJECT_DOT[project.color] ?? 'bg-gray-500'}`} />
-              <span className="text-xs text-gray-600">{project.name}</span>
+              <span className="text-xs text-[var(--c-text3)]">{project.name}</span>
             </div>
           )}
         </div>

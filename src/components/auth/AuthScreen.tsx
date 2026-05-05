@@ -37,27 +37,27 @@ export function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1b23] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--c-bg)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg mb-3">
             <LayoutGrid size={28} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">TaskNexus</h1>
-          <p className="text-sm text-gray-500 mt-1">Gerenciamento de tarefas e projetos</p>
+          <h1 className="text-2xl font-bold text-[var(--c-text1)]">TaskNexus</h1>
+          <p className="text-sm text-[var(--c-text2)] mt-1">Gerenciamento de tarefas e projetos</p>
         </div>
 
         {/* Card */}
-        <div className="bg-[#22232e] rounded-2xl shadow-xl border border-[#2e2f3d] p-8">
+        <div className="bg-[var(--c-card)] rounded-2xl shadow-xl border border-[var(--c-border)] p-8">
           {/* Tabs */}
-          <div className="flex bg-[#1a1b23] rounded-xl p-1 mb-6">
+          <div className="flex bg-[var(--c-elevated)] rounded-xl p-1 mb-6">
             {(['login', 'signup'] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => { setMode(m); setError(null); setSuccess(null); }}
                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all
-                  ${mode === m ? 'bg-[#2e2f3d] text-indigo-400 shadow-sm' : 'text-gray-600 hover:text-gray-400'}`}
+                  ${mode === m ? 'bg-[var(--c-active)] text-indigo-500 shadow-sm' : 'text-[var(--c-text3)] hover:text-[var(--c-text2)]'}`}
               >
                 {m === 'login' ? 'Entrar' : 'Criar Conta'}
               </button>
@@ -66,19 +66,19 @@ export function AuthScreen() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+              <label className="block text-sm font-medium text-[var(--c-text2)] mb-1">E-mail</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="seu@email.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-[#3a3b4a] bg-[#1a1b23] text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-600"
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--c-border2)] bg-[var(--c-elevated)] text-[var(--c-text1)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-[var(--c-text3)]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+              <label className="block text-sm font-medium text-[var(--c-text2)] mb-1">Senha</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -87,12 +87,12 @@ export function AuthScreen() {
                   required
                   minLength={6}
                   placeholder="••••••••"
-                  className="w-full px-4 py-2.5 pr-11 rounded-xl border border-[#3a3b4a] bg-[#1a1b23] text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-gray-600"
+                  className="w-full px-4 py-2.5 pr-11 rounded-xl border border-[var(--c-border2)] bg-[var(--c-elevated)] text-[var(--c-text1)] text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder-[var(--c-text3)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--c-text3)] hover:text-[var(--c-text2)]"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -129,14 +129,14 @@ export function AuthScreen() {
                 await supabase.auth.resetPasswordForEmail(e);
                 alert('E-mail de recuperação enviado!');
               }}
-              className="w-full text-center text-xs text-gray-400 hover:text-indigo-600 mt-4 transition-colors"
+              className="w-full text-center text-xs text-[var(--c-text3)] hover:text-indigo-600 mt-4 transition-colors"
             >
               Esqueci minha senha
             </button>
           )}
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
+        <p className="text-center text-xs text-[var(--c-text3)] mt-6">
           Seus dados são protegidos com Row Level Security no Supabase.
         </p>
       </div>
