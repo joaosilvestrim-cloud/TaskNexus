@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Plus, Calendar, Search, ChevronLeft, ChevronRight, X,
-  ChevronDown, AlertCircle, CheckCircle2, Activity, Pencil, Trash2, Check, GripVertical,
+  ChevronDown, AlertCircle, CheckCircle2, Activity, Pencil, Trash2, Check,
 } from 'lucide-react';
 import { format, parseISO, isToday, addDays, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useStore } from '../../store/useStore';
 import { PRIORITY_CONFIG } from '../../utils/priority';
-import type { Priority, Task, KanbanColumn } from '../../types';
+import type { Priority, Task } from '../../types';
 
 const PRIORITY_BORDER: Record<string, string> = {
   p1: 'border-l-4 border-l-red-500',
