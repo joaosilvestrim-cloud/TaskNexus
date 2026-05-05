@@ -105,7 +105,6 @@ export function TaskDetail() {
   const overdue   = isOverdue(task.dueDate);
   const projectOf = projects.find(p => p.id === task.projectId);
   const sectionOf = sections.find(s => s.id === task.sectionId);
-  const projectSections = sections.filter(s => s.projectId === task.projectId);
 
   const currentRecur = RECURRENCE_OPTIONS.find(o =>
     o.value.type === task.recurrence.type &&
