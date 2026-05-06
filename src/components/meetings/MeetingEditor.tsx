@@ -4,6 +4,7 @@ import {
   Calendar, Users, X, Zap, ArrowRight, CheckCircle2,
   Circle, Trash2, FileText, Upload, Sparkles,
   Wand2, ListChecks, BookOpen, Lightbulb, Loader2, Tag, ChevronDown,
+  LayoutGrid,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { parseActionItems } from '../../utils/meetingParser';
@@ -17,7 +18,7 @@ const P_COLOR: Record<Priority, string> = {
 interface Props { meetingId: string; }
 
 export function MeetingEditor({ meetingId }: Props) {
-  const { meetingNotes, updateMeetingNote, convertActionItems, projects } = useStore();
+  const { meetingNotes, updateMeetingNote, convertActionItems, projects, setActiveView } = useStore();
   const meeting = meetingNotes.find(m => m.id === meetingId);
 
   const [participantInput, setParticipantInput] = useState('');
@@ -248,6 +249,16 @@ Sem markdown, sem explicações, apenas o JSON.`;
             <span className="text-xs text-green-400 flex items-center gap-1">
               <CheckCircle2 size={12} /> Transcrição importada!
             </span>
+          )}
+          {/* Kanban card badge */}
+          {meeting.linkedTaskId && (
+            <button
+              onClick={() => setActiveView('kanban')}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 transition-colors"
+              title="Ver card no Kanban"
+            >
+              <LayoutGrid size={12} /> Card criado no Kanban
+            </button>
           )}
           <button onClick={() => setShowUpload(v => !v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${

@@ -152,6 +152,7 @@ export interface MeetingNote {
   actionItems: MeetingActionItem[];
   template: MeetingTemplate;
   projectId: string | null;
+  linkedTaskId: string | null; // Kanban card linked to this meeting
   createdAt: string;
   updatedAt: string;
 }

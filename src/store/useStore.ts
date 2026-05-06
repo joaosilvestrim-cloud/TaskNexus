@@ -119,6 +119,21 @@ function showErrorToast(message: string) {
   setTimeout(() => el.remove(), 4000);
 }
 
+// Builds the description for a Kanban card linked to a meeting note
+function buildMeetingDescription(note: MeetingNote, projectName: string | null): string {
+  const date = new Date(note.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const client = projectName ? `🏢 Cliente: ${projectName}` : '';
+  const participants = note.participants.length > 0 ? `👥 ${note.participants.join(', ')}` : '';
+  const actions = note.actionItems.length > 0 ? `✅ ${note.actionItems.length} item(s) de ação` : '';
+  return [
+    `📅 Data: ${date}`,
+    client,
+    participants,
+    actions,
+    note.agenda ? `\n📌 Pauta:\n${note.agenda.slice(0, 200)}${note.agenda.length > 200 ? '...' : ''}` : '',
+  ].filter(Boolean).join('\n');
+}
+
 // Fields that are stored only in localStorage, not sent to DB
 const EXTRA_FIELDS: (keyof Task)[] = ['colorTag', 'estimatedMinutes', 'loggedMinutes', 'dependencies', 'comments', 'attachments'];
 
@@ -515,7 +530,11 @@ export const useStore = create<AppState>()((set, get) => ({
 
   // ── Meeting Notes (localStorage) ─────────────────────────────────────────
   meetingNotes: (() => {
-    try { return JSON.parse(localStorage.getItem('meeting_notes') ?? '[]') as MeetingNote[]; }
+    try {
+      const raw = JSON.parse(localStorage.getItem('meeting_notes') ?? '[]') as MeetingNote[];
+      // Migrate old notes that don't have linkedTaskId
+      return raw.map(m => ({ linkedTaskId: null, ...m }));
+    }
     catch { return []; }
   })(),
   selectedMeetingId: null,
@@ -534,9 +553,27 @@ export const useStore = create<AppState>()((set, get) => ({
       actionItems: [],
       template,
       projectId: null,
+      linkedTaskId: null,
       createdAt: now(),
       updatedAt: now(),
     };
+
+    // Create linked Kanban card immediately
+    get().addTask({
+      title: `📋 ${note.title}`,
+      description: buildMeetingDescription(note, null),
+      projectId: null,
+      status: 'todo',
+      priority: 'p3',
+    }).then((task) => {
+      const updated: MeetingNote = { ...note, linkedTaskId: task.id };
+      set((s) => {
+        const next = [updated, ...s.meetingNotes.filter(m => m.id !== note.id)];
+        localStorage.setItem('meeting_notes', JSON.stringify(next));
+        return { meetingNotes: next };
+      });
+    });
+
     set((s) => {
       const next = [note, ...s.meetingNotes];
       localStorage.setItem('meeting_notes', JSON.stringify(next));
@@ -547,18 +584,39 @@ export const useStore = create<AppState>()((set, get) => ({
 
   updateMeetingNote: (id, changes) => {
     set((s) => {
+      const prev = s.meetingNotes.find(m => m.id === id);
       const next = s.meetingNotes.map((m) =>
         m.id === id ? { ...m, ...changes, updatedAt: now() } : m
       );
       localStorage.setItem('meeting_notes', JSON.stringify(next));
+
+      // Sync Kanban card if title/date/project changed
+      const updated = next.find(m => m.id === id);
+      if (updated?.linkedTaskId && prev) {
+        const needsSync = changes.title !== undefined || changes.date !== undefined || changes.projectId !== undefined || changes.participants !== undefined;
+        if (needsSync) {
+          const projectName = s.projects.find(p => p.id === updated.projectId)?.name ?? null;
+          get().updateTask(updated.linkedTaskId, {
+            title: `📋 ${updated.title}`,
+            description: buildMeetingDescription(updated, projectName),
+            projectId: updated.projectId,
+          });
+        }
+      }
+
       return { meetingNotes: next };
     });
   },
 
   deleteMeetingNote: (id) => {
     set((s) => {
+      const meeting = s.meetingNotes.find(m => m.id === id);
       const next = s.meetingNotes.filter((m) => m.id !== id);
       localStorage.setItem('meeting_notes', JSON.stringify(next));
+      // Also delete linked Kanban card
+      if (meeting?.linkedTaskId) {
+        get().deleteTask(meeting.linkedTaskId);
+      }
       return {
         meetingNotes: next,
         selectedMeetingId: s.selectedMeetingId === id ? null : s.selectedMeetingId,
