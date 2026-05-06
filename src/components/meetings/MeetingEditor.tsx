@@ -38,7 +38,7 @@ export function MeetingEditor({ meetingId }: Props) {
   const [aiSummary, setAiSummary]         = useState<string | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<string[] | null>(null);
   const [aiError, setAiError]             = useState<string | null>(null);
-  const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (meeting) {
