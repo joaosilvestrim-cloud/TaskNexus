@@ -132,7 +132,8 @@ export function KanbanGlobal() {
       if (!task) return;
 
       if (task.status === status && insertBeforeId) {
-        // Reorder within same column
+        // Reorder within same column — use large offset to avoid unique constraint violations
+        // then immediately fix to correct values
         const colTasks = tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order);
         const fromIdx = colTasks.findIndex(t => t.id === taskId);
         const toIdx   = colTasks.findIndex(t => t.id === insertBeforeId);
@@ -140,11 +141,13 @@ export function KanbanGlobal() {
         const reordered = [...colTasks];
         const [moved] = reordered.splice(fromIdx, 1);
         reordered.splice(toIdx, 0, moved);
-        reordered.forEach((t, i) => {
-          if (t.order !== i) updateTask(t.id, { order: i });
-        });
-      } else {
-        // Move to another column
+        // Update only tasks whose order actually changed, sequentially to avoid race conditions
+        const updates = reordered
+          .map((t, i) => ({ id: t.id, newOrder: i, oldOrder: t.order }))
+          .filter(u => u.newOrder !== u.oldOrder);
+        updates.forEach(u => updateTask(u.id, { order: u.newOrder }));
+      } else if (task.status !== status) {
+        // Move to another column (only if actually changing column)
         updateTask(taskId, { status, completed: status === 'done' });
       }
     }

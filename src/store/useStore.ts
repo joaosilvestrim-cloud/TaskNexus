@@ -217,18 +217,28 @@ export const useStore = create<AppState>()((set, get) => ({
       }
     });
 
-    // Save extra fields to localStorage
+    // Save extra fields to localStorage immediately
     if (Object.keys(extraChanges).length > 0) {
       setTaskExtras(id, extraChanges as Parameters<typeof setTaskExtras>[1]);
     }
 
+    // Optimistic update: snapshot previous state for rollback
+    const previousTask = get().tasks.find(t => t.id === id);
     set((s) => ({
       tasks: s.tasks.map((t) => t.id === id ? { ...t, ...changes, updatedAt: now() } : t),
     }));
 
-    // Only send non-extra fields to DB
+    // Send DB fields to Supabase and roll back on failure
     if (Object.keys(dbChanges).length > 0) {
-      tasksApi.update(id, dbChanges).catch((err) => console.error('[updateTask]', err));
+      tasksApi.update(id, dbChanges).catch((err) => {
+        console.error('[updateTask] Supabase error — rolling back:', err);
+        // Rollback to previous state
+        if (previousTask) {
+          set((s) => ({
+            tasks: s.tasks.map((t) => t.id === id ? previousTask : t),
+          }));
+        }
+      });
     }
   },
 
@@ -245,13 +255,20 @@ export const useStore = create<AppState>()((set, get) => ({
     if (!task) return;
     const completed = !task.completed;
     const status = completed ? 'done' : 'backlog';
+    const completedAt = completed ? now() : null;
+    // Optimistic update
     set((s) => ({
       tasks: s.tasks.map((t) =>
-        t.id === id ? { ...t, completed, status, completedAt: completed ? now() : null, updatedAt: now() } : t,
+        t.id === id ? { ...t, completed, status, completedAt, updatedAt: now() } : t,
       ),
     }));
-    tasksApi.update(id, { completed, status, completedAt: completed ? now() : null })
-      .catch((err) => console.error('[toggleTask]', err));
+    tasksApi.update(id, { completed, status, completedAt })
+      .catch((err) => {
+        console.error('[toggleTask] Supabase error — rolling back:', err);
+        set((s) => ({
+          tasks: s.tasks.map((t) => t.id === id ? task : t),
+        }));
+      });
   },
 
   duplicateTask: async (id) => {

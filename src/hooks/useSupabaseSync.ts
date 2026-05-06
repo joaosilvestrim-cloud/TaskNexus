@@ -49,15 +49,20 @@ export function useSupabaseSync() {
       }
     });
 
-    // Listen to auth state changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+    // Listen to auth state changes — only reload data on actual sign-in/sign-out,
+    // NOT on TOKEN_REFRESHED (which fires every hour and would overwrite local state)
+    const { data: listener } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       const u = session?.user;
-      if (u) {
-        setUser({ id: u.id, email: u.email ?? '' });
-        loadAll();
-      } else {
+      if (event === 'SIGNED_IN') {
+        setUser(u ? { id: u.id, email: u.email ?? '' } : null);
+        if (u) loadAll();
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        useStore.setState({ tasks: [], projects: [], sections: [], labels: [], filters: [] });
         setLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && u) {
+        // Only update the user object, do NOT reload all data
+        setUser({ id: u.id, email: u.email ?? '' });
       }
     });
 
