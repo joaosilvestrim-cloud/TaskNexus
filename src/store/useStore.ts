@@ -94,6 +94,20 @@ interface AppState {
 
 const now = () => new Date().toISOString();
 
+// Simple DOM toast for save errors (no external dependency needed)
+function showErrorToast(message: string) {
+  const el = document.createElement('div');
+  el.textContent = message;
+  el.style.cssText = [
+    'position:fixed', 'bottom:80px', 'left:50%', 'transform:translateX(-50%)',
+    'background:#ef4444', 'color:#fff', 'padding:10px 18px', 'border-radius:8px',
+    'font-size:13px', 'z-index:99999', 'box-shadow:0 4px 12px rgba(0,0,0,.4)',
+    'pointer-events:none', 'max-width:90vw', 'text-align:center',
+  ].join(';');
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
 // Fields that are stored only in localStorage, not sent to DB
 const EXTRA_FIELDS: (keyof Task)[] = ['colorTag', 'estimatedMinutes', 'loggedMinutes', 'dependencies', 'comments', 'attachments'];
 
@@ -232,6 +246,9 @@ export const useStore = create<AppState>()((set, get) => ({
     if (Object.keys(dbChanges).length > 0) {
       tasksApi.update(id, dbChanges).catch((err) => {
         console.error('[updateTask] Supabase error — rolling back:', err);
+        // Show a brief error toast so the user sees save failures
+        const msg = err instanceof Error ? err.message : 'Erro ao salvar';
+        showErrorToast(`Erro ao salvar tarefa: ${msg}`);
         // Rollback to previous state
         if (previousTask) {
           set((s) => ({
@@ -265,6 +282,7 @@ export const useStore = create<AppState>()((set, get) => ({
     tasksApi.update(id, { completed, status, completedAt })
       .catch((err) => {
         console.error('[toggleTask] Supabase error — rolling back:', err);
+        showErrorToast('Erro ao salvar tarefa. Verifique a conexão.');
         set((s) => ({
           tasks: s.tasks.map((t) => t.id === id ? task : t),
         }));

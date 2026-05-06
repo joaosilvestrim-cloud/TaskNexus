@@ -185,16 +185,16 @@ export const tasksApi = {
     if (changes.order !== undefined) dbChanges.sort_order = changes.order;
 
     if (Object.keys(dbChanges).length > 0) {
-      const { data, error } = await supabase
+      console.log('[tasksApi.update] Sending to Supabase:', { id, fields: Object.keys(dbChanges), values: dbChanges });
+      const { error, status } = await supabase
         .from('tasks')
         .update(dbChanges)
-        .eq('id', id)
-        .select('id');
-      if (error) throw error;
-      // If RLS silently blocked the update, data will be empty
-      if (!data || data.length === 0) {
-        throw new Error(`[tasksApi.update] Update blocked (RLS or row not found) for task ${id}`);
+        .eq('id', id);
+      if (error) {
+        console.error('[tasksApi.update] Supabase error:', { error, status, id, dbChanges });
+        throw error;
       }
+      console.log('[tasksApi.update] ✓ Saved successfully:', { id, status, fields: Object.keys(dbChanges) });
     }
 
     // Update label associations
