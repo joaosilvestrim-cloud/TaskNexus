@@ -2,24 +2,32 @@ import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import {
   tasksApi, subtasksApi, projectsApi, sectionsApi,
-  labelsApi, filtersApi,
+  labelsApi, filtersApi, setTaskExtras, getTaskExtras,
 } from '../lib/api';
 import type {
   Task, Project, Section, Label, SavedFilter, NavView,
-  ProjectColor, ProjectView, KanbanColumn,
+  ProjectColor, ProjectView, KanbanColumn, Comment, Attachment,
 } from '../types';
 
 const DEFAULT_COLUMNS: KanbanColumn[] = [
-  { id: 'backlog',     label: 'Backlog',      color: 'text-gray-400',   accent: 'bg-gray-400',   order: 0, isDefault: true },
-  { id: 'todo',        label: 'A fazer',      color: 'text-blue-400',   accent: 'bg-blue-500',   order: 1, isDefault: true },
-  { id: 'in_progress', label: 'Em progresso', color: 'text-yellow-400', accent: 'bg-yellow-400', order: 2, isDefault: true },
-  { id: 'done',        label: 'Concluído',    color: 'text-green-400',  accent: 'bg-green-500',  order: 3, isDefault: true },
+  { id: 'backlog',     label: 'Backlog',      color: 'text-gray-400',   accent: 'bg-gray-400',   order: 0, isDefault: true, wipLimit: null, bgColor: null },
+  { id: 'todo',        label: 'A fazer',      color: 'text-blue-400',   accent: 'bg-blue-500',   order: 1, isDefault: true, wipLimit: null, bgColor: null },
+  { id: 'in_progress', label: 'Em progresso', color: 'text-yellow-400', accent: 'bg-yellow-400', order: 2, isDefault: true, wipLimit: null, bgColor: null },
+  { id: 'done',        label: 'Concluído',    color: 'text-green-400',  accent: 'bg-green-500',  order: 3, isDefault: true, wipLimit: null, bgColor: null },
 ];
 
 function loadColumns(): KanbanColumn[] {
   try {
     const raw = localStorage.getItem('kanban_columns');
-    if (raw) return JSON.parse(raw) as KanbanColumn[];
+    if (raw) {
+      const cols = JSON.parse(raw) as KanbanColumn[];
+      // Ensure new fields exist
+      return cols.map(c => ({
+        wipLimit: null,
+        bgColor: null,
+        ...c,
+      }));
+    }
   } catch { /* ignore */ }
   return DEFAULT_COLUMNS;
 }
@@ -51,10 +59,17 @@ interface AppState {
   updateTask: (id: string, changes: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   toggleTask: (id: string) => void;
+  duplicateTask: (id: string) => Promise<void>;
+  convertSubtaskToTask: (taskId: string, subtaskId: string) => Promise<void>;
 
   addSubtask: (taskId: string, title: string) => Promise<void>;
   toggleSubtask: (taskId: string, subtaskId: string) => void;
   deleteSubtask: (taskId: string, subtaskId: string) => void;
+
+  addComment: (taskId: string, text: string) => void;
+  deleteComment: (taskId: string, commentId: string) => void;
+  addAttachment: (taskId: string, attachment: Attachment) => void;
+  deleteAttachment: (taskId: string, attachmentId: string) => void;
 
   addProject: (name: string, color: ProjectColor) => Promise<Project>;
   updateProject: (id: string, changes: Partial<Project>) => void;
@@ -76,6 +91,9 @@ interface AppState {
 
 const now = () => new Date().toISOString();
 
+// Fields that are stored only in localStorage, not sent to DB
+const EXTRA_FIELDS: (keyof Task)[] = ['colorTag', 'estimatedMinutes', 'loggedMinutes', 'dependencies', 'comments', 'attachments'];
+
 export const useStore = create<AppState>()((set, get) => ({
   tasks: [],
   projects: [],
@@ -96,6 +114,8 @@ export const useStore = create<AppState>()((set, get) => ({
       accent: 'bg-purple-400',
       order: cols.length,
       isDefault: false,
+      wipLimit: null,
+      bgColor: null,
     };
     const next = [...cols, newCol];
     saveColumns(next);
@@ -149,14 +169,29 @@ export const useStore = create<AppState>()((set, get) => ({
       order: get().tasks.length,
       createdAt: now(),
       updatedAt: now(),
+      colorTag: null,
+      estimatedMinutes: null,
+      loggedMinutes: null,
+      dependencies: [],
+      comments: [],
+      attachments: [],
     };
     // Optimistic update
     set((s) => ({ tasks: [...s.tasks, optimistic] }));
     try {
       const saved = await tasksApi.create(optimistic);
-      // Replace optimistic with real DB record
-      set((s) => ({ tasks: s.tasks.map((t) => t.id === optimistic.id ? saved : t) }));
-      return saved;
+      // Merge extra fields back (they may be lost after DB round-trip)
+      const withExtras: Task = {
+        ...saved,
+        colorTag: optimistic.colorTag,
+        estimatedMinutes: optimistic.estimatedMinutes,
+        loggedMinutes: optimistic.loggedMinutes,
+        dependencies: optimistic.dependencies,
+        comments: optimistic.comments,
+        attachments: optimistic.attachments,
+      };
+      set((s) => ({ tasks: s.tasks.map((t) => t.id === optimistic.id ? withExtras : t) }));
+      return withExtras;
     } catch (err) {
       // Rollback on error
       set((s) => ({ tasks: s.tasks.filter((t) => t.id !== optimistic.id) }));
@@ -166,10 +201,30 @@ export const useStore = create<AppState>()((set, get) => ({
   },
 
   updateTask: (id, changes) => {
+    // Separate extra fields from DB fields
+    const extraChanges: Partial<Task> = {};
+    const dbChanges: Partial<Task> = {};
+    (Object.keys(changes) as (keyof Task)[]).forEach(key => {
+      if (EXTRA_FIELDS.includes(key)) {
+        (extraChanges as Record<string, unknown>)[key] = (changes as Record<string, unknown>)[key];
+      } else {
+        (dbChanges as Record<string, unknown>)[key] = (changes as Record<string, unknown>)[key];
+      }
+    });
+
+    // Save extra fields to localStorage
+    if (Object.keys(extraChanges).length > 0) {
+      setTaskExtras(id, extraChanges as Parameters<typeof setTaskExtras>[1]);
+    }
+
     set((s) => ({
       tasks: s.tasks.map((t) => t.id === id ? { ...t, ...changes, updatedAt: now() } : t),
     }));
-    tasksApi.update(id, changes).catch((err) => console.error('[updateTask]', err));
+
+    // Only send non-extra fields to DB
+    if (Object.keys(dbChanges).length > 0) {
+      tasksApi.update(id, dbChanges).catch((err) => console.error('[updateTask]', err));
+    }
   },
 
   deleteTask: (id) => {
@@ -192,6 +247,79 @@ export const useStore = create<AppState>()((set, get) => ({
     }));
     tasksApi.update(id, { completed, status, completedAt: completed ? now() : null })
       .catch((err) => console.error('[toggleTask]', err));
+  },
+
+  duplicateTask: async (id) => {
+    const task = get().tasks.find((t) => t.id === id);
+    if (!task) return;
+    await get().addTask({
+      ...task,
+      title: task.title + ' (cópia)',
+      completed: false,
+      completedAt: null,
+      subtasks: [],
+    });
+  },
+
+  convertSubtaskToTask: async (taskId, subtaskId) => {
+    const task = get().tasks.find((t) => t.id === taskId);
+    const sub = task?.subtasks.find((s) => s.id === subtaskId);
+    if (!sub || !task) return;
+    // Create new task with subtask title
+    await get().addTask({
+      title: sub.title,
+      projectId: task.projectId,
+      sectionId: task.sectionId,
+      priority: task.priority,
+      status: 'backlog',
+    });
+    // Remove subtask from parent
+    get().deleteSubtask(taskId, subtaskId);
+  },
+
+  // ── Comments ─────────────────────────────────────────────────────────────
+  addComment: (taskId, text) => {
+    const comment: Comment = { id: uuid(), text, createdAt: now() };
+    const task = get().tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const comments = [...task.comments, comment];
+    setTaskExtras(taskId, { comments });
+    set((s) => ({
+      tasks: s.tasks.map(t => t.id === taskId ? { ...t, comments } : t),
+    }));
+  },
+
+  deleteComment: (taskId, commentId) => {
+    const task = get().tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const comments = task.comments.filter(c => c.id !== commentId);
+    setTaskExtras(taskId, { comments });
+    set((s) => ({
+      tasks: s.tasks.map(t => t.id === taskId ? { ...t, comments } : t),
+    }));
+  },
+
+  // ── Attachments ───────────────────────────────────────────────────────────
+  addAttachment: (taskId, attachment) => {
+    const task = get().tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const attachments = [...task.attachments, attachment];
+    setTaskExtras(taskId, { attachments });
+    set((s) => ({
+      tasks: s.tasks.map(t => t.id === taskId ? { ...t, attachments } : t),
+    }));
+  },
+
+  deleteAttachment: (taskId, attachmentId) => {
+    const task = get().tasks.find(t => t.id === taskId);
+    if (!task) return;
+    // Also remove from localStorage
+    localStorage.removeItem(`attachment_${attachmentId}`);
+    const attachments = task.attachments.filter(a => a.id !== attachmentId);
+    setTaskExtras(taskId, { attachments });
+    set((s) => ({
+      tasks: s.tasks.map(t => t.id === taskId ? { ...t, attachments } : t),
+    }));
   },
 
   // ── Subtasks ─────────────────────────────────────────────────────────────

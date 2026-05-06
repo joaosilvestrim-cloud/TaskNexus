@@ -2,12 +2,13 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Plus, Calendar, Search, ChevronLeft, ChevronRight, X,
   ChevronDown, AlertCircle, CheckCircle2, Activity, Pencil, Trash2, Check,
+  Settings, Link2, Clock,
 } from 'lucide-react';
 import { format, parseISO, isToday, addDays, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useStore } from '../../store/useStore';
 import { PRIORITY_CONFIG } from '../../utils/priority';
-import type { Priority, Task } from '../../types';
+import type { Priority, Task, KanbanColumn } from '../../types';
 
 const PRIORITY_BORDER: Record<string, string> = {
   p1: 'border-l-4 border-l-red-500',
@@ -35,13 +36,20 @@ const COLUMN_COLOR_OPTIONS = [
   { color: 'text-red-400',    accent: 'bg-red-400',    label: 'Vermelho' },
 ];
 
+const BG_COLOR_OPTIONS = [
+  '#6366f1', '#8b5cf6', '#ec4899', '#ef4444',
+  '#f97316', '#eab308', '#22c55e', '#06b6d4',
+];
+
 const todayStr = new Date().toISOString().split('T')[0];
 const tomorrowStr = addDays(startOfToday(), 1).toISOString().split('T')[0];
+
+type SwimlaneMode = 'none' | 'project' | 'priority';
 
 export function KanbanGlobal() {
   const {
     tasks, projects, labels, updateTask, setSelectedTask, selectedTaskId, addTask,
-    kanbanColumns, addKanbanColumn, updateKanbanColumn, deleteKanbanColumn,
+    kanbanColumns, addKanbanColumn, updateKanbanColumn, deleteKanbanColumn, reorderKanbanColumns,
   } = useStore();
 
   const [addingTo, setAddingTo]         = useState<string | null>(null);
@@ -50,6 +58,7 @@ export function KanbanGlobal() {
   const [filterProject, setFilterProject] = useState<string>('');
   const [filterPriority, setFilterPriority] = useState<Priority | ''>('');
   const [collapsed, setCollapsed]       = useState<Set<string>>(new Set());
+  const [swimlane, setSwimlane]         = useState<SwimlaneMode>('none');
 
   // New-column modal
   const [addingCol, setAddingCol]       = useState(false);
@@ -60,20 +69,82 @@ export function KanbanGlobal() {
   const [renamingCol, setRenamingCol]   = useState<string | null>(null);
   const [renameVal, setRenameVal]       = useState('');
 
+  // Column settings popover
+  const [settingsCol, setSettingsCol]   = useState<string | null>(null);
+  const [wipInput, setWipInput]         = useState<string>('');
+
+  // Column drag
+  const [draggingColId, setDraggingColId] = useState<string | null>(null);
+
+  // Card drag for reordering within column
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+
   const columns = [...kanbanColumns].sort((a, b) => a.order - b.order);
 
   const getProject = (id: string | null) => projects.find(p => p.id === id);
 
-  // ── Drag & drop (tasks) ───────────────────────────────────────────────────
-  const handleDrop = (e: React.DragEvent, status: string) => {
+  // ── Column drag & drop ────────────────────────────────────────────────────
+  const handleColDragStart = (e: React.DragEvent, colId: string) => {
+    setDraggingColId(colId);
+    e.dataTransfer.setData('colId', colId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleColDragOver = (e: React.DragEvent, targetColId: string) => {
     e.preventDefault();
+    const draggedColId = e.dataTransfer.getData('colId') || draggingColId;
+    if (!draggedColId || draggedColId === targetColId) return;
+  };
+
+  const handleColDrop = (e: React.DragEvent, targetColId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const draggedColId = draggingColId;
+    if (!draggedColId || draggedColId === targetColId) return;
+
+    const sorted = [...columns];
+    const fromIdx = sorted.findIndex(c => c.id === draggedColId);
+    const toIdx   = sorted.findIndex(c => c.id === targetColId);
+    if (fromIdx < 0 || toIdx < 0) return;
+
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+    const updated = reordered.map((c, i) => ({ ...c, order: i }));
+    reorderKanbanColumns(updated);
+    setDraggingColId(null);
+  };
+
+  // ── Task drag & drop ──────────────────────────────────────────────────────
+  const handleDrop = (e: React.DragEvent, status: string, insertBeforeId?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     const taskId = e.dataTransfer.getData('taskId');
-    const dateTarget = e.dataTransfer.getData('dateTarget'); // 'today' | 'tomorrow'
-    if (taskId) {
-      if (dateTarget) {
-        const d = dateTarget === 'today' ? todayStr : tomorrowStr;
-        updateTask(taskId, { dueDate: d });
+    const dateTarget = e.dataTransfer.getData('dateTarget');
+
+    if (!taskId) return;
+
+    if (dateTarget) {
+      const d = dateTarget === 'today' ? todayStr : tomorrowStr;
+      updateTask(taskId, { dueDate: d });
+    } else {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      if (task.status === status && insertBeforeId) {
+        // Reorder within same column
+        const colTasks = tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order);
+        const fromIdx = colTasks.findIndex(t => t.id === taskId);
+        const toIdx   = colTasks.findIndex(t => t.id === insertBeforeId);
+        if (fromIdx < 0 || toIdx < 0) return;
+        const reordered = [...colTasks];
+        const [moved] = reordered.splice(fromIdx, 1);
+        reordered.splice(toIdx, 0, moved);
+        reordered.forEach((t, i) => {
+          if (t.order !== i) updateTask(t.id, { order: i });
+        });
       } else {
+        // Move to another column
         updateTask(taskId, { status, completed: status === 'done' });
       }
     }
@@ -131,13 +202,10 @@ export function KanbanGlobal() {
     e.preventDefault();
     if (!newColLabel.trim()) return;
     addKanbanColumn(newColLabel.trim());
-    // apply chosen color to the new column (store uses purple default; patch it)
-    // we'll update right after
     setNewColLabel('');
     setAddingCol(false);
   };
 
-  // after addKanbanColumn, patch last column with chosen color (runs once on new column creation)
   const prevColCountRef = useRef(columns.length);
   useEffect(() => {
     if (columns.length > prevColCountRef.current) {
@@ -155,6 +223,40 @@ export function KanbanGlobal() {
     setRenamingCol(null);
     setRenameVal('');
   };
+
+  // ── Swimlane helpers ──────────────────────────────────────────────────────
+  const getSwimlaneGroups = (): { key: string; label: string; color?: string }[] => {
+    if (swimlane === 'project') {
+      const groups: { key: string; label: string; color?: string }[] = [
+        { key: 'null', label: 'Caixa de Entrada' },
+      ];
+      projects.filter(p => !p.archived).forEach(p => {
+        groups.push({ key: p.id, label: p.name });
+      });
+      return groups;
+    }
+    if (swimlane === 'priority') {
+      return [
+        { key: 'p1', label: 'Urgente (P1)', color: '#ef4444' },
+        { key: 'p2', label: 'Alta (P2)',    color: '#f97316' },
+        { key: 'p3', label: 'Média (P3)',   color: '#60a5fa' },
+        { key: 'p4', label: 'Baixa (P4)',   color: '#9ca3af' },
+      ];
+    }
+    return [{ key: 'all', label: '' }];
+  };
+
+  const filterTasksBySwimlane = (groupKey: string) => {
+    if (swimlane === 'project') {
+      return filteredTasks.filter(t => (t.projectId ?? 'null') === groupKey);
+    }
+    if (swimlane === 'priority') {
+      return filteredTasks.filter(t => t.priority === groupKey);
+    }
+    return filteredTasks;
+  };
+
+  const swimlaneGroups = getSwimlaneGroups();
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
@@ -193,7 +295,7 @@ export function KanbanGlobal() {
           {search && <button onClick={() => setSearch('')}><X size={11} className="text-[var(--c-text3)]" /></button>}
         </div>
 
-        {/* Filtro projeto — chips clicáveis */}
+        {/* Filtro projeto */}
         <div className="flex items-center gap-1 flex-wrap">
           <button
             onClick={() => setFilterProject('')}
@@ -229,6 +331,19 @@ export function KanbanGlobal() {
           })}
         </div>
 
+        {/* Swimlane toggle */}
+        <div className="flex items-center gap-1 ml-auto">
+          <span className="text-xs text-[var(--c-text3)] mr-1">Raia:</span>
+          {(['none', 'project', 'priority'] as SwimlaneMode[]).map(mode => (
+            <button key={mode}
+              onClick={() => setSwimlane(mode)}
+              className={`text-xs px-2.5 py-1 rounded-lg border transition-all
+                ${swimlane === mode ? 'bg-indigo-600 text-white border-indigo-600' : 'border-[var(--c-border)] text-[var(--c-text3)] hover:border-[var(--c-border2)]'}`}>
+              {mode === 'none' ? 'Nenhum' : mode === 'project' ? 'Projeto' : 'Prioridade'}
+            </button>
+          ))}
+        </div>
+
         {hasFilters && (
           <button onClick={() => { setSearch(''); setFilterProject(''); setFilterPriority(''); }}
             className="text-xs text-red-400 hover:text-red-500 flex items-center gap-1">
@@ -238,188 +353,317 @@ export function KanbanGlobal() {
       </div>
 
       {/* ── Board ── */}
-      <div className="flex gap-4 p-6 overflow-x-auto flex-1 items-start">
-
-        {columns.map((col, colIdx) => {
-          const colTasks = filteredTasks
-            .filter(t => t.status === col.id)
-            .sort((a, b) => a.order - b.order);
-          const overdueInCol = colTasks.filter(t => !t.completed && t.dueDate && t.dueDate < todayStr).length;
-          const isCollapsed = collapsed.has(col.id);
-
-          return (
-            <div key={col.id}
-              className={`flex-shrink-0 flex flex-col transition-all duration-200 ${isCollapsed ? 'w-14' : 'w-72'}`}
-              onDragOver={e => { if (!isCollapsed) { e.preventDefault(); (e.currentTarget as HTMLElement).classList.add('ring-2', 'ring-indigo-500', 'rounded-xl'); }}}
-              onDragLeave={e => (e.currentTarget as HTMLElement).classList.remove('ring-2', 'ring-indigo-500', 'rounded-xl')}
-              onDrop={e => { if (!isCollapsed) handleDrop(e, col.id); }}
-            >
-              {/* Column header */}
-              <div className={`flex items-center mb-3 px-1 gap-2 w-full ${isCollapsed ? 'flex-col py-2' : 'justify-between'}`}>
-                {/* Click dot/chevron to collapse */}
-                <button
-                  onClick={() => toggleCollapse(col.id)}
-                  className={`flex items-center gap-2 ${isCollapsed ? 'flex-col' : ''} flex-1 min-w-0`}
-                >
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${col.accent}`} />
-                  {!isCollapsed && (
-                    renamingCol === col.id
-                      ? null
-                      : <span className={`text-xs font-semibold truncate ${col.color}`}>{col.label}</span>
-                  )}
-                  <span className="text-xs text-[var(--c-text3)] bg-[var(--c-hover)] px-1.5 py-0.5 rounded-full shrink-0">{colTasks.length}</span>
-                  {overdueInCol > 0 && !isCollapsed && (
-                    <span className="text-xs bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full font-medium shrink-0">⚠ {overdueInCol}</span>
-                  )}
-                </button>
-
-                {/* Inline rename */}
-                {renamingCol === col.id && !isCollapsed && (
-                  <form onSubmit={e => { e.preventDefault(); handleRenameCol(col.id); }} className="flex-1">
-                    <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
-                      onBlur={() => handleRenameCol(col.id)}
-                      onKeyDown={e => e.key === 'Escape' && setRenamingCol(null)}
-                      className="w-full text-xs font-semibold bg-transparent border-b border-indigo-400 focus:outline-none text-[var(--c-text1)]"
-                    />
-                  </form>
-                )}
-
-                {/* Column actions */}
-                {!isCollapsed && (
-                  <div className="flex items-center gap-0.5 shrink-0">
-                    <button onClick={() => { setRenamingCol(col.id); setRenameVal(col.label); }}
-                      title="Renomear coluna"
-                      className="p-1 rounded text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-hover)]">
-                      <Pencil size={11} />
-                    </button>
-                    {!col.isDefault && (
-                      <button onClick={() => deleteKanbanColumn(col.id)}
-                        title="Excluir coluna"
-                        className="p-1 rounded text-[var(--c-text3)] hover:text-red-400 hover:bg-red-50/10">
-                        <Trash2 size={11} />
-                      </button>
-                    )}
-                    <ChevronDown size={13} className="text-[var(--c-text3)] ml-0.5" />
-                  </div>
-                )}
+      <div className="flex-1 overflow-auto p-6">
+        {swimlaneGroups.map((group, groupIdx) => (
+          <div key={group.key} className={groupIdx > 0 ? 'mt-6' : ''}>
+            {/* Swimlane header */}
+            {swimlane !== 'none' && (
+              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[var(--c-border)]">
+                {group.color && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: group.color }} />}
+                <span className="text-sm font-semibold text-[var(--c-text1)]">{group.label}</span>
+                <span className="text-xs text-[var(--c-text3)]">
+                  ({filterTasksBySwimlane(group.key).length} tarefas)
+                </span>
               </div>
+            )}
 
-              {/* Cards */}
-              {!isCollapsed && (
-                <>
-                  <div className="space-y-2 min-h-16">
-                    {col.id === 'backlog'
-                      ? (
-                        <BacklogGrouped
-                          tasks={colTasks}
-                          onSelect={setSelectedTask}
-                          selectedId={selectedTaskId}
-                          getProject={getProject}
-                          labels={labels}
-                          onMove={moveTask}
-                          colIdx={colIdx}
-                          colCount={columns.length}
-                        />
-                      )
-                      : colTasks.map(t => (
-                        <TaskCard key={t.id} task={t}
-                          isSelected={selectedTaskId === t.id}
-                          onSelect={() => setSelectedTask(t.id === selectedTaskId ? null : t.id)}
-                          getProject={getProject} labels={labels}
-                          onMove={moveTask} colIdx={colIdx} colCount={columns.length}
-                        />
-                      ))
-                    }
-                    {colTasks.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-8 text-[var(--c-text3)]">
-                        <div className="text-2xl mb-1">
-                          {col.id === 'done' ? '🎉' : col.id === 'backlog' ? '📋' : '📭'}
+            {/* Columns row */}
+            <div className="flex gap-4 items-start">
+              {columns.map((col, colIdx) => {
+                const groupTasks = filterTasksBySwimlane(group.key);
+                const colTasks = groupTasks
+                  .filter(t => t.status === col.id)
+                  .sort((a, b) => a.order - b.order);
+                const overdueInCol = colTasks.filter(t => !t.completed && t.dueDate && t.dueDate < todayStr).length;
+                const isCollapsed = collapsed.has(col.id);
+
+                const wipLimit = col.wipLimit;
+                const wipColor = wipLimit
+                  ? colTasks.length > wipLimit
+                    ? 'text-red-400'
+                    : colTasks.length >= wipLimit
+                      ? 'text-amber-400'
+                      : 'text-[var(--c-text3)]'
+                  : null;
+
+                return (
+                  <div key={col.id}
+                    className={`flex-shrink-0 flex flex-col transition-all duration-200 ${isCollapsed ? 'w-14' : 'w-72'}`}
+                    onDragOver={e => {
+                      const isColDrag = draggingColId !== null;
+                      if (isColDrag) {
+                        e.preventDefault();
+                        handleColDragOver(e, col.id);
+                      } else if (!isCollapsed) {
+                        e.preventDefault();
+                        (e.currentTarget as HTMLElement).classList.add('ring-2', 'ring-indigo-500', 'rounded-xl');
+                      }
+                    }}
+                    onDragLeave={e => (e.currentTarget as HTMLElement).classList.remove('ring-2', 'ring-indigo-500', 'rounded-xl')}
+                    onDrop={e => {
+                      (e.currentTarget as HTMLElement).classList.remove('ring-2', 'ring-indigo-500', 'rounded-xl');
+                      if (draggingColId) {
+                        handleColDrop(e, col.id);
+                      } else if (!isCollapsed) {
+                        handleDrop(e, col.id);
+                      }
+                    }}
+                  >
+                    {/* Column header */}
+                    <div
+                      draggable
+                      onDragStart={e => handleColDragStart(e, col.id)}
+                      onDragEnd={() => setDraggingColId(null)}
+                      className={`flex items-center mb-3 px-1 gap-2 w-full cursor-grab active:cursor-grabbing ${isCollapsed ? 'flex-col py-2' : 'justify-between'}`}
+                    >
+                      {/* Click dot/chevron to collapse */}
+                      <button
+                        onClick={() => toggleCollapse(col.id)}
+                        className={`flex items-center gap-2 ${isCollapsed ? 'flex-col' : ''} flex-1 min-w-0`}
+                      >
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${col.accent}`} />
+                        {!isCollapsed && (
+                          renamingCol === col.id
+                            ? null
+                            : <span className={`text-xs font-semibold truncate ${col.color}`}>{col.label}</span>
+                        )}
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full shrink-0 ${wipLimit ? wipColor + ' bg-[var(--c-hover)] font-semibold' : 'text-[var(--c-text3)] bg-[var(--c-hover)]'}`}>
+                          {wipLimit ? `${colTasks.length}/${wipLimit}` : colTasks.length}
+                        </span>
+                        {overdueInCol > 0 && !isCollapsed && (
+                          <span className="text-xs bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full font-medium shrink-0">⚠ {overdueInCol}</span>
+                        )}
+                      </button>
+
+                      {/* Inline rename */}
+                      {renamingCol === col.id && !isCollapsed && (
+                        <form onSubmit={e => { e.preventDefault(); handleRenameCol(col.id); }} className="flex-1">
+                          <input autoFocus value={renameVal} onChange={e => setRenameVal(e.target.value)}
+                            onBlur={() => handleRenameCol(col.id)}
+                            onKeyDown={e => e.key === 'Escape' && setRenamingCol(null)}
+                            className="w-full text-xs font-semibold bg-transparent border-b border-indigo-400 focus:outline-none text-[var(--c-text1)]"
+                          />
+                        </form>
+                      )}
+
+                      {/* Column actions */}
+                      {!isCollapsed && (
+                        <div className="flex items-center gap-0.5 shrink-0">
+                          <button onClick={() => { setRenamingCol(col.id); setRenameVal(col.label); }}
+                            title="Renomear coluna"
+                            className="p-1 rounded text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-hover)]">
+                            <Pencil size={11} />
+                          </button>
+                          {/* Settings popover */}
+                          <div className="relative">
+                            <button
+                              onClick={() => {
+                                setSettingsCol(settingsCol === col.id ? null : col.id);
+                                setWipInput(col.wipLimit?.toString() ?? '');
+                              }}
+                              title="Configurações"
+                              className="p-1 rounded text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-hover)]">
+                              <Settings size={11} />
+                            </button>
+                            {settingsCol === col.id && (
+                              <div className="absolute right-0 top-7 z-50 w-64 bg-[var(--c-card)] border border-[var(--c-border)] rounded-xl shadow-xl p-4">
+                                <p className="text-xs font-semibold text-[var(--c-text2)] mb-3">Configurações da coluna</p>
+
+                                {/* WIP limit */}
+                                <div className="mb-3">
+                                  <label className="text-xs text-[var(--c-text3)] block mb-1">Limite WIP</label>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={wipInput}
+                                      onChange={e => setWipInput(e.target.value)}
+                                      placeholder="Sem limite"
+                                      className="flex-1 text-xs px-2 py-1.5 rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text1)] focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        const v = wipInput.trim();
+                                        updateKanbanColumn(col.id, { wipLimit: v ? parseInt(v) : null });
+                                        setSettingsCol(null);
+                                      }}
+                                      className="px-2 py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                      Salvar
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Background color */}
+                                <div>
+                                  <label className="text-xs text-[var(--c-text3)] block mb-1">Cor de fundo</label>
+                                  <div className="flex gap-1.5 flex-wrap">
+                                    <button
+                                      onClick={() => updateKanbanColumn(col.id, { bgColor: null })}
+                                      className={`w-6 h-6 rounded-full border-2 bg-[var(--c-elevated)] ${!col.bgColor ? 'border-indigo-400' : 'border-[var(--c-border)]'}`}
+                                      title="Sem cor"
+                                    >
+                                      <X size={10} className="mx-auto text-[var(--c-text3)]" />
+                                    </button>
+                                    {BG_COLOR_OPTIONS.map(hex => (
+                                      <button key={hex}
+                                        onClick={() => updateKanbanColumn(col.id, { bgColor: hex })}
+                                        className={`w-6 h-6 rounded-full border-2 transition-all ${col.bgColor === hex ? 'border-white scale-110' : 'border-transparent'}`}
+                                        style={{ backgroundColor: hex }}
+                                        title={hex}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <button onClick={() => setSettingsCol(null)}
+                                  className="mt-3 w-full text-xs text-[var(--c-text3)] hover:text-[var(--c-text2)]">
+                                  Fechar
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          {!col.isDefault && (
+                            <button onClick={() => deleteKanbanColumn(col.id)}
+                              title="Excluir coluna"
+                              className="p-1 rounded text-[var(--c-text3)] hover:text-red-400 hover:bg-red-50/10">
+                              <Trash2 size={11} />
+                            </button>
+                          )}
+                          <ChevronDown size={13} className="text-[var(--c-text3)] ml-0.5" />
                         </div>
-                        <p className="text-xs">{col.id === 'done' ? 'Nada concluído ainda' : 'Vazio'}</p>
+                      )}
+                    </div>
+
+                    {/* Cards area */}
+                    {!isCollapsed && (
+                      <div
+                        className="rounded-xl min-h-16 transition-all"
+                        style={col.bgColor ? { backgroundColor: col.bgColor + '18' } : {}}
+                      >
+                        <div className="space-y-2 p-1">
+                          {col.id === 'backlog' && swimlane === 'none'
+                            ? (
+                              <BacklogGrouped
+                                tasks={colTasks}
+                                onSelect={setSelectedTask}
+                                selectedId={selectedTaskId}
+                                getProject={getProject}
+                                labels={labels}
+                                onMove={moveTask}
+                                colIdx={colIdx}
+                                colCount={columns.length}
+                                onDrop={handleDrop}
+                                setDraggingTaskId={setDraggingTaskId}
+                                draggingTaskId={draggingTaskId}
+                              />
+                            )
+                            : colTasks.map(t => (
+                              <TaskCard key={t.id} task={t}
+                                isSelected={selectedTaskId === t.id}
+                                onSelect={() => setSelectedTask(t.id === selectedTaskId ? null : t.id)}
+                                getProject={getProject} labels={labels}
+                                onMove={moveTask} colIdx={colIdx} colCount={columns.length}
+                                colStatus={col.id}
+                                onDrop={handleDrop}
+                                setDraggingTaskId={setDraggingTaskId}
+                                draggingTaskId={draggingTaskId}
+                              />
+                            ))
+                          }
+                          {colTasks.length === 0 && (
+                            <div className="flex flex-col items-center justify-center py-8 text-[var(--c-text3)]">
+                              <div className="text-2xl mb-1">
+                                {col.id === 'done' ? '🎉' : col.id === 'backlog' ? '📋' : '📭'}
+                              </div>
+                              <p className="text-xs">{col.id === 'done' ? 'Nada concluído ainda' : 'Vazio'}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Add task */}
+                        {swimlane === 'none' && (addingTo === col.id ? (
+                          <div className="m-1 mt-2 bg-[var(--c-card)] rounded-xl p-3 border border-[var(--c-border2)]">
+                            <input autoFocus value={newTitle} onChange={e => setNewTitle(e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter') handleAddTask(col.id); if (e.key === 'Escape') { setAddingTo(null); setNewTitle(''); } }}
+                              placeholder="Nome da tarefa..."
+                              className="w-full bg-transparent text-sm text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none"
+                            />
+                            <div className="flex gap-2 mt-2">
+                              <button onClick={() => handleAddTask(col.id)} className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700">Salvar</button>
+                              <button onClick={() => { setAddingTo(null); setNewTitle(''); }} className="px-3 py-1 text-[var(--c-text2)] text-xs rounded-lg hover:bg-[var(--c-hover)]">Cancelar</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button onClick={() => setAddingTo(col.id)}
+                            className="mt-1 flex items-center gap-2 w-full px-2 py-2 text-xs text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-hover)] rounded-xl transition-colors">
+                            <Plus size={13} /> Nova tarefa
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
+                );
+              })}
 
-                  {/* Add task */}
-                  {addingTo === col.id ? (
-                    <div className="mt-2 bg-[var(--c-card)] rounded-xl p-3 border border-[var(--c-border2)]">
-                      <input autoFocus value={newTitle} onChange={e => setNewTitle(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') handleAddTask(col.id); if (e.key === 'Escape') { setAddingTo(null); setNewTitle(''); } }}
-                        placeholder="Nome da tarefa..."
-                        className="w-full bg-transparent text-sm text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none"
-                      />
-                      <div className="flex gap-2 mt-2">
-                        <button onClick={() => handleAddTask(col.id)} className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700">Salvar</button>
-                        <button onClick={() => { setAddingTo(null); setNewTitle(''); }} className="px-3 py-1 text-[var(--c-text2)] text-xs rounded-lg hover:bg-[var(--c-hover)]">Cancelar</button>
-                      </div>
+              {/* ── Add column button ── */}
+              {swimlane === 'none' && groupIdx === 0 && (
+                <div className="flex-shrink-0 w-64">
+                  {addingCol ? (
+                    <div className="bg-[var(--c-card)] border border-[var(--c-border2)] rounded-2xl p-4 shadow-lg">
+                      <h3 className="text-sm font-semibold text-[var(--c-text1)] mb-3">Nova coluna</h3>
+                      <form onSubmit={handleAddColumn} className="space-y-3">
+                        <input
+                          autoFocus
+                          value={newColLabel}
+                          onChange={e => setNewColLabel(e.target.value)}
+                          placeholder="Nome da coluna..."
+                          className="w-full text-sm px-3 py-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text1)] focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        />
+                        <div>
+                          <p className="text-xs text-[var(--c-text3)] mb-2">Cor</p>
+                          <div className="flex flex-wrap gap-2">
+                            {COLUMN_COLOR_OPTIONS.map(opt => (
+                              <button key={opt.label} type="button"
+                                onClick={() => setNewColColor(opt)}
+                                className={`w-6 h-6 rounded-full ${opt.accent} transition-all
+                                  ${newColColor.label === opt.label ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
+                                title={opt.label}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => { setAddingCol(false); setNewColLabel(''); }}
+                            className="flex-1 py-1.5 text-xs rounded-lg border border-[var(--c-border)] text-[var(--c-text2)] hover:bg-[var(--c-hover)]">
+                            Cancelar
+                          </button>
+                          <button type="submit" disabled={!newColLabel.trim()}
+                            className="flex-1 py-1.5 text-xs rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 flex items-center justify-center gap-1">
+                            <Check size={12} /> Criar
+                          </button>
+                        </div>
+                      </form>
                     </div>
                   ) : (
-                    <button onClick={() => setAddingTo(col.id)}
-                      className="mt-2 flex items-center gap-2 w-full px-2 py-2 text-xs text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:bg-[var(--c-hover)] rounded-xl transition-colors">
-                      <Plus size={13} /> Nova tarefa
+                    <button
+                      onClick={() => setAddingCol(true)}
+                      className="flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-dashed border-[var(--c-border)] text-[var(--c-text3)] hover:text-indigo-400 hover:border-indigo-400 transition-all text-sm w-full"
+                    >
+                      <Plus size={16} /> Nova coluna
                     </button>
                   )}
-                </>
+                </div>
               )}
             </div>
-          );
-        })}
-
-        {/* ── Add column button / modal ── */}
-        <div className="flex-shrink-0 w-64">
-          {addingCol ? (
-            <div className="bg-[var(--c-card)] border border-[var(--c-border2)] rounded-2xl p-4 shadow-lg">
-              <h3 className="text-sm font-semibold text-[var(--c-text1)] mb-3">Nova coluna</h3>
-              <form onSubmit={handleAddColumn} className="space-y-3">
-                <input
-                  autoFocus
-                  value={newColLabel}
-                  onChange={e => setNewColLabel(e.target.value)}
-                  placeholder="Nome da coluna..."
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-[var(--c-border)] bg-[var(--c-elevated)] text-[var(--c-text1)] focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-                <div>
-                  <p className="text-xs text-[var(--c-text3)] mb-2">Cor</p>
-                  <div className="flex flex-wrap gap-2">
-                    {COLUMN_COLOR_OPTIONS.map(opt => (
-                      <button key={opt.label} type="button"
-                        onClick={() => setNewColColor(opt)}
-                        className={`w-6 h-6 rounded-full ${opt.accent} transition-all
-                          ${newColColor.label === opt.label ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : ''}`}
-                        title={opt.label}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => { setAddingCol(false); setNewColLabel(''); }}
-                    className="flex-1 py-1.5 text-xs rounded-lg border border-[var(--c-border)] text-[var(--c-text2)] hover:bg-[var(--c-hover)]">
-                    Cancelar
-                  </button>
-                  <button type="submit" disabled={!newColLabel.trim()}
-                    className="flex-1 py-1.5 text-xs rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 flex items-center justify-center gap-1">
-                    <Check size={12} /> Criar
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : (
-            <button
-              onClick={() => setAddingCol(true)}
-              className="flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-dashed border-[var(--c-border)] text-[var(--c-text3)] hover:text-indigo-400 hover:border-indigo-400 transition-all text-sm w-full"
-            >
-              <Plus size={16} /> Nova coluna
-            </button>
-          )}
-        </div>
-
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
 // ── Backlog agrupado com atalhos de dia ───────────────────────────────────────
-function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMove, colIdx, colCount }: {
+function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMove, colIdx, colCount, onDrop, setDraggingTaskId, draggingTaskId }: {
   tasks: Task[];
   onSelect: (id: string | null) => void;
   selectedId: string | null;
@@ -428,6 +672,9 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMov
   onMove: (taskId: string, dir: 'prev' | 'next') => void;
   colIdx: number;
   colCount: number;
+  onDrop: (e: React.DragEvent, status: string, insertBeforeId?: string) => void;
+  setDraggingTaskId: (id: string | null) => void;
+  draggingTaskId: string | null;
 }) {
   const [hoveredZone, setHoveredZone] = useState<'today' | 'tomorrow' | null>(null);
 
@@ -457,7 +704,6 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMov
     <div className="space-y-3">
       {/* ── Atalhos de data ── */}
       <div className="flex gap-2">
-        {/* Zona Hoje */}
         <div
           onDragOver={e => { e.preventDefault(); setHoveredZone('today'); }}
           onDragLeave={() => setHoveredZone(null)}
@@ -469,7 +715,6 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMov
         >
           <Calendar size={11} /> Hoje
         </div>
-        {/* Zona Amanhã */}
         <div
           onDragOver={e => { e.preventDefault(); setHoveredZone('tomorrow'); }}
           onDragLeave={() => setHoveredZone(null)}
@@ -496,6 +741,10 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMov
               <TaskCard key={t.id} task={t} isSelected={selectedId === t.id}
                 onSelect={() => onSelect(t.id === selectedId ? null : t.id)}
                 getProject={getProject} labels={labels} onMove={onMove} colIdx={colIdx} colCount={colCount}
+                colStatus="backlog"
+                onDrop={onDrop}
+                setDraggingTaskId={setDraggingTaskId}
+                draggingTaskId={draggingTaskId}
               />
             ))}
           </div>
@@ -506,7 +755,7 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMov
 }
 
 // ── Card de tarefa ────────────────────────────────────────────────────────────
-function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colIdx, colCount }: {
+function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colIdx, colCount, colStatus, onDrop, setDraggingTaskId, draggingTaskId }: {
   task: Task;
   isSelected: boolean;
   onSelect: () => void;
@@ -515,10 +764,15 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
   onMove: (taskId: string, dir: 'prev' | 'next') => void;
   colIdx: number;
   colCount: number;
+  colStatus: string;
+  onDrop: (e: React.DragEvent, status: string, insertBeforeId?: string) => void;
+  setDraggingTaskId: (id: string | null) => void;
+  draggingTaskId: string | null;
 }) {
   const project = getProject(task.projectId);
   const cfg = PRIORITY_CONFIG[task.priority];
   const { updateTask } = useStore();
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const taskLabels   = labels.filter(l => task.labelIds.includes(l.id));
   const subtaskDone  = task.subtasks.filter(s => s.completed).length;
@@ -531,6 +785,8 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
     ? isToday(parseISO(task.dueDate)) ? 'Hoje' : format(parseISO(task.dueDate), 'd MMM', { locale: ptBR })
     : null;
 
+  const isBlocked = task.dependencies && task.dependencies.length > 0;
+
   const cyclePriority = (e: React.MouseEvent) => {
     e.stopPropagation();
     const idx = PRIORITY_CYCLE.indexOf(task.priority as Priority);
@@ -538,17 +794,45 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
     updateTask(task.id, { priority: next });
   };
 
+  // Left border color from colorTag or priority
+  const borderStyle = task.colorTag
+    ? { borderLeftColor: task.colorTag, borderLeftWidth: '4px', borderLeftStyle: 'solid' as const }
+    : {};
+  const borderClass = task.colorTag ? '' : (PRIORITY_BORDER[task.priority] ?? '');
+
   return (
     <div
       draggable
-      onDragStart={e => { e.dataTransfer.setData('taskId', task.id); e.dataTransfer.setData('dateTarget', ''); }}
+      onDragStart={e => {
+        e.dataTransfer.setData('taskId', task.id);
+        e.dataTransfer.setData('dateTarget', '');
+        setDraggingTaskId(task.id);
+      }}
+      onDragEnd={() => setDraggingTaskId(null)}
+      onDragOver={e => {
+        if (draggingTaskId && draggingTaskId !== task.id) {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsDragOver(true);
+        }
+      }}
+      onDragLeave={() => setIsDragOver(false)}
+      onDrop={e => {
+        e.stopPropagation();
+        setIsDragOver(false);
+        if (draggingTaskId && draggingTaskId !== task.id) {
+          onDrop(e, colStatus, task.id);
+        }
+      }}
       onClick={onSelect}
+      style={borderStyle}
       className={`group relative rounded-xl border cursor-pointer transition-all select-none overflow-hidden
-        ${PRIORITY_BORDER[task.priority] ?? ''}
+        ${borderClass}
         ${isSelected
           ? 'bg-[var(--c-active)] border-indigo-500'
           : 'bg-[var(--c-card)] border-[var(--c-border)] hover:border-[var(--c-border2)] hover:bg-[var(--c-hover)]'}
-        ${task.completed ? 'opacity-60' : ''}`}
+        ${task.completed ? 'opacity-60' : ''}
+        ${isDragOver ? 'border-t-2 border-t-indigo-400' : ''}`}
     >
       {/* ⬅️➡️ Botões de mover */}
       <div className="absolute top-2 right-2 hidden group-hover:flex items-center gap-1 z-10">
@@ -596,6 +880,9 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
                   ${task.priority === 'p4' ? 'text-[var(--c-text3)] hover:text-[var(--c-text2)]' : cfg?.color ?? ''}`}>
                 {task.priority === 'p4' ? '—' : cfg?.label ?? task.priority}
               </button>
+              {/* Icons for extra features */}
+              {isBlocked && <Link2 size={10} className="text-amber-400" title="Bloqueada por dependências" />}
+              {task.estimatedMinutes && <Clock size={10} className="text-[var(--c-text3)]" title={`Estimado: ${task.estimatedMinutes}min`} />}
             </div>
 
             {dueDateLabel && (
@@ -630,6 +917,11 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
                   />
                 </div>
               </div>
+            )}
+
+            {/* Color tag dot */}
+            {task.colorTag && (
+              <div className="absolute top-2 left-2 w-2 h-2 rounded-full" style={{ backgroundColor: task.colorTag }} />
             )}
           </div>
         </div>

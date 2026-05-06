@@ -1,0 +1,207 @@
+import { useEffect, useMemo } from 'react';
+import { format, parseISO, isToday, isPast } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { X, Target, CheckCircle2, Clock } from 'lucide-react';
+import { useStore } from '../../store/useStore';
+import { PRIORITY_CONFIG } from '../../utils/priority';
+
+export function FocusMode() {
+  const { tasks, setActiveView, setSelectedTask, selectedTaskId, updateTask, projects } = useStore();
+
+  // Escape to exit
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveView('kanban');
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [setActiveView]);
+
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const focusTasks = useMemo(() => {
+    return tasks.filter(t => {
+      if (t.completed) return false;
+      if (t.dueDate === todayStr) return true; // due today
+      if (t.dueDate && t.dueDate < todayStr) return true; // overdue
+      return false;
+    }).sort((a, b) => {
+      // Overdue first, then by priority
+      const aOverdue = a.dueDate && a.dueDate < todayStr;
+      const bOverdue = b.dueDate && b.dueDate < todayStr;
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+      return a.priority.localeCompare(b.priority);
+    });
+  }, [tasks, todayStr]);
+
+  const totalToday = tasks.filter(t => t.dueDate === todayStr).length;
+  const doneToday  = tasks.filter(t => t.completed && t.completedAt?.startsWith(todayStr)).length;
+  const progress   = totalToday > 0 ? (doneToday / totalToday) * 100 : 0;
+
+  const overdueTasks = focusTasks.filter(t => t.dueDate && t.dueDate < todayStr);
+  const todayTasks   = focusTasks.filter(t => t.dueDate === todayStr);
+
+  const getProject = (id: string | null) => projects.find(p => p.id === id);
+
+  return (
+    <div className="flex-1 flex flex-col bg-[var(--c-bg)]">
+      {/* Header */}
+      <div className="flex items-center justify-between px-8 py-5 border-b border-[var(--c-border)]">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center">
+            <Target size={18} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-[var(--c-text1)]">Modo Foco</h1>
+            <p className="text-xs text-[var(--c-text3)]">
+              {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setActiveView('kanban')}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--c-text3)] hover:bg-[var(--c-hover)] hover:text-[var(--c-text2)] transition-colors">
+          <X size={14} /> Sair (Esc)
+        </button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="px-8 py-4 border-b border-[var(--c-border)] bg-[var(--c-elevated)]">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={14} className="text-green-400" />
+            <span className="text-sm font-medium text-[var(--c-text1)]">
+              {doneToday} de {totalToday} concluídas hoje
+            </span>
+          </div>
+          <span className="text-sm font-bold text-indigo-400">{Math.round(progress)}%</span>
+        </div>
+        <div className="w-full h-3 bg-[var(--c-border2)] rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-700 ${progress === 100 ? 'bg-green-500' : 'bg-indigo-500'}`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        {progress === 100 && totalToday > 0 && (
+          <p className="text-sm text-green-500 mt-2 text-center font-medium">
+            🎉 Parabéns! Todas as tarefas de hoje foram concluídas!
+          </p>
+        )}
+        {focusTasks.length === 0 && (
+          <p className="text-sm text-[var(--c-text3)] mt-2 text-center">
+            Nenhuma tarefa pendente para hoje. Aproveite! 🌟
+          </p>
+        )}
+      </div>
+
+      {/* Tasks */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-8 py-6 space-y-6">
+
+          {/* Atrasadas */}
+          {overdueTasks.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Clock size={14} className="text-red-400" />
+                <h2 className="text-sm font-semibold text-red-400">Atrasadas ({overdueTasks.length})</h2>
+              </div>
+              <div className="space-y-2">
+                {overdueTasks.map(t => (
+                  <FocusTaskItem
+                    key={t.id}
+                    task={t}
+                    isSelected={t.id === selectedTaskId}
+                    onSelect={() => setSelectedTask(t.id === selectedTaskId ? null : t.id)}
+                    onToggle={() => updateTask(t.id, { completed: true, status: 'done' })}
+                    getProject={getProject}
+                    isOverdue
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Hoje */}
+          {todayTasks.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Target size={14} className="text-indigo-400" />
+                <h2 className="text-sm font-semibold text-[var(--c-text1)]">Para hoje ({todayTasks.length})</h2>
+              </div>
+              <div className="space-y-2">
+                {todayTasks.map(t => (
+                  <FocusTaskItem
+                    key={t.id}
+                    task={t}
+                    isSelected={t.id === selectedTaskId}
+                    onSelect={() => setSelectedTask(t.id === selectedTaskId ? null : t.id)}
+                    onToggle={() => updateTask(t.id, { completed: true, status: 'done' })}
+                    getProject={getProject}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FocusTaskItem({
+  task, isSelected, onSelect, onToggle, getProject, isOverdue,
+}: {
+  task: ReturnType<typeof useStore.getState>['tasks'][0];
+  isSelected: boolean;
+  onSelect: () => void;
+  onToggle: () => void;
+  getProject: (id: string | null) => { name: string } | undefined;
+  isOverdue?: boolean;
+}) {
+  const cfg = PRIORITY_CONFIG[task.priority];
+  const proj = getProject(task.projectId);
+
+  return (
+    <div
+      onClick={onSelect}
+      className={`flex items-center gap-4 px-4 py-3.5 rounded-xl border cursor-pointer transition-all group
+        ${isSelected
+          ? 'bg-[var(--c-active)] border-indigo-500'
+          : 'bg-[var(--c-card)] border-[var(--c-border)] hover:border-[var(--c-border2)] hover:bg-[var(--c-hover)]'}
+        ${isOverdue ? 'border-l-2 border-l-red-500' : ''}`}
+      style={task.colorTag ? { borderLeftColor: task.colorTag, borderLeftWidth: '3px' } : {}}
+    >
+      <button
+        onClick={e => { e.stopPropagation(); onToggle(); }}
+        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all
+          ${task.completed ? 'bg-green-600 border-green-600' : 'border-[var(--c-border2)] hover:border-indigo-400'}`}
+      >
+        {task.completed && (
+          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 10 10">
+            <path d="M1.5 5l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </button>
+
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm font-medium ${task.completed ? 'line-through text-[var(--c-text3)]' : 'text-[var(--c-text1)]'}`}>
+          {task.title}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          {proj && <span className="text-xs text-[var(--c-text3)]">{proj.name}</span>}
+          {isOverdue && task.dueDate && (
+            <span className="text-xs text-red-400">
+              Vence {format(parseISO(task.dueDate), "d 'de' MMM", { locale: ptBR })}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 ${cfg?.color ?? ''}`}>
+        {task.priority.toUpperCase()}
+      </span>
+    </div>
+  );
+}

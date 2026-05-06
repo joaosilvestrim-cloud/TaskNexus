@@ -7,6 +7,8 @@ import { LabelView } from '../tasks/LabelView';
 import { FilterView } from '../tasks/FilterView';
 import { TaskDetail } from '../tasks/TaskDetail';
 import { KanbanGlobal } from '../kanban/KanbanGlobal';
+import { CalendarView } from '../views/CalendarView';
+import { FocusMode } from '../views/FocusMode';
 
 export function MainContent() {
   const { activeView, projects, selectedTaskId } = useStore();
@@ -16,6 +18,8 @@ export function MainContent() {
     if (activeView === 'today') return <TodayView />;
     if (activeView === 'upcoming') return <UpcomingView />;
     if (activeView === 'kanban') return <KanbanGlobal />;
+    if (activeView === 'calendar') return <CalendarView />;
+    if (activeView === 'focus') return <FocusMode />;
 
     if (typeof activeView === 'object') {
       if (activeView.type === 'project') {
@@ -28,6 +32,18 @@ export function MainContent() {
 
     return <KanbanGlobal />;
   };
+
+  // FocusMode renders full-screen with its own layout
+  if (activeView === 'focus') {
+    return (
+      <div className="flex flex-1 overflow-hidden bg-[var(--c-bg)]">
+        <main className="flex-1 overflow-y-auto flex flex-col">
+          <FocusMode />
+        </main>
+        {selectedTaskId && <TaskDetail />}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 overflow-hidden bg-[var(--c-bg)]">

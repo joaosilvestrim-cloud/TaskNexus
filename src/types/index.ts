@@ -8,6 +8,8 @@ export interface KanbanColumn {
   accent: string;      // tailwind bg class, e.g. 'bg-gray-400'
   order: number;
   isDefault: boolean;  // built-in columns can't be deleted
+  wipLimit: number | null;
+  bgColor: string | null;
 }
 
 export type RecurrenceType =
@@ -44,6 +46,19 @@ export interface SubTask {
   createdAt: string;
 }
 
+export interface Comment {
+  id: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -63,6 +78,13 @@ export interface Task {
   order: number;
   createdAt: string;
   updatedAt: string;
+  // Extra fields (stored in localStorage)
+  colorTag: string | null;
+  estimatedMinutes: number | null;
+  loggedMinutes: number | null;
+  dependencies: string[];
+  comments: Comment[];
+  attachments: Attachment[];
 }
 
 export interface Section {
@@ -100,6 +122,8 @@ export type NavView =
   | 'today'
   | 'upcoming'
   | 'kanban'
+  | 'calendar'
+  | 'focus'
   | { type: 'project'; id: string }
   | { type: 'label'; id: string }
   | { type: 'filter'; id: string };

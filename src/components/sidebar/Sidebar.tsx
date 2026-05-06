@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Inbox, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
   Plus, LayoutGrid, StickyNote, BookOpen,
-  Hash, LayoutList, Calendar, Sun, Moon,
+  Hash, LayoutList, Calendar, Sun, Moon, Target,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import type { NavView } from '../../types';
@@ -105,19 +105,12 @@ export function Sidebar() {
         <div className="px-2 mb-1">
           <p className="px-2 py-1 text-xs font-semibold text-[var(--c-text3)] uppercase tracking-wider">Calendário</p>
           <div className="space-y-0.5">
-            {navBtn('today', 'Dia', <Calendar size={14} />)}
-            {navBtn('upcoming', 'Semana', <LayoutList size={14} />)}
-            {navBtn('upcoming', 'Mês', <CalendarDays size={14} />)}
+            {navBtn('calendar', 'Calendário', <Calendar size={14} />)}
+            {navBtn('focus', 'Modo Foco', <Target size={14} />)}
           </div>
         </div>
 
         <div className="mx-3 my-2 border-t border-[var(--c-border)]" />
-
-        {/* ── Notas / Tutoriais ── */}
-        <div className="px-2 space-y-0.5">
-          {navBtn('inbox', 'Notas', <StickyNote size={14} />)}
-          {navBtn('inbox', 'Tutoriais', <BookOpen size={14} />)}
-        </div>
 
         <div className="mx-3 my-2 border-t border-[var(--c-border)]" />
 

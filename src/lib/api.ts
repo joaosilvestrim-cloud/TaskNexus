@@ -259,6 +259,46 @@ export const filtersApi = {
   },
 };
 
+// ── Task extras localStorage helpers ─────────────────────────────────────────
+type TaskExtras = {
+  colorTag: string | null;
+  estimatedMinutes: number | null;
+  loggedMinutes: number | null;
+  dependencies: string[];
+  comments: import('../types').Comment[];
+  attachments: import('../types').Attachment[];
+};
+
+function loadTaskExtras(): Record<string, TaskExtras> {
+  try {
+    const raw = localStorage.getItem('task_extras');
+    if (raw) return JSON.parse(raw) as Record<string, TaskExtras>;
+  } catch { /* ignore */ }
+  return {};
+}
+
+function saveTaskExtras(map: Record<string, TaskExtras>) {
+  localStorage.setItem('task_extras', JSON.stringify(map));
+}
+
+export function getTaskExtras(taskId: string): TaskExtras {
+  const map = loadTaskExtras();
+  return map[taskId] ?? {
+    colorTag: null,
+    estimatedMinutes: null,
+    loggedMinutes: null,
+    dependencies: [],
+    comments: [],
+    attachments: [],
+  };
+}
+
+export function setTaskExtras(taskId: string, extras: Partial<TaskExtras>) {
+  const map = loadTaskExtras();
+  map[taskId] = { ...getTaskExtras(taskId), ...extras };
+  saveTaskExtras(map);
+}
+
 // ── DB → APP type mappers ────────────────────────────────────────────────────
 function dbToProject(r: Record<string, unknown>): Project {
   return {
@@ -291,9 +331,11 @@ function dbToTask(r: Record<string, unknown>): Task {
     createdAt: (s.created_at ?? s.createdAt) as string,
   }));
   const labelIds = ((r.task_labels as { label_id: string }[]) ?? []).map(tl => tl.label_id);
+  const id = r.id as string;
+  const extras = getTaskExtras(id);
 
   return {
-    id: r.id as string,
+    id,
     title: r.title as string,
     description: (r.description ?? '') as string,
     projectId: (r.project_id ?? null) as string | null,
@@ -311,5 +353,11 @@ function dbToTask(r: Record<string, unknown>): Task {
     order: r.sort_order as number,
     createdAt: r.created_at as string,
     updatedAt: r.updated_at as string,
+    colorTag: extras.colorTag,
+    estimatedMinutes: extras.estimatedMinutes,
+    loggedMinutes: extras.loggedMinutes,
+    dependencies: extras.dependencies,
+    comments: extras.comments,
+    attachments: extras.attachments,
   };
 }
