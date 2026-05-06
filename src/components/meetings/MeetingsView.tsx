@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import {
   Plus, FileText, Trash2, Search, Upload,
-  Calendar, ChevronRight, CheckCircle2, Sparkles,
+  ChevronRight, CheckCircle2,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { MeetingEditor } from './MeetingEditor';
