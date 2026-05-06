@@ -533,7 +533,7 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       const raw = JSON.parse(localStorage.getItem('meeting_notes') ?? '[]') as MeetingNote[];
       // Migrate old notes that don't have linkedTaskId
-      return raw.map(m => ({ linkedTaskId: null, ...m }));
+      return raw.map(m => ({ ...m, linkedTaskId: m.linkedTaskId ?? null }));
     }
     catch { return []; }
   })(),
