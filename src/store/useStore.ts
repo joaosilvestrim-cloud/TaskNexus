@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import {
   tasksApi, subtasksApi, projectsApi, sectionsApi,
-  labelsApi, filtersApi, setTaskExtras, getTaskExtras,
+  labelsApi, filtersApi, setTaskExtras,
 } from '../lib/api';
 import type {
   Task, Project, Section, Label, SavedFilter, NavView,
@@ -23,9 +23,9 @@ function loadColumns(): KanbanColumn[] {
       const cols = JSON.parse(raw) as KanbanColumn[];
       // Ensure new fields exist
       return cols.map(c => ({
-        wipLimit: null,
-        bgColor: null,
         ...c,
+        wipLimit: c.wipLimit ?? null,
+        bgColor: c.bgColor ?? null,
       }));
     }
   } catch { /* ignore */ }

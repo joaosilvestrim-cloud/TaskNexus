@@ -8,7 +8,7 @@ import { format, parseISO, isToday, addDays, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useStore } from '../../store/useStore';
 import { PRIORITY_CONFIG } from '../../utils/priority';
-import type { Priority, Task, KanbanColumn } from '../../types';
+import type { Priority, Task } from '../../types';
 
 const PRIORITY_BORDER: Record<string, string> = {
   p1: 'border-l-4 border-l-red-500',
@@ -881,8 +881,8 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
                 {task.priority === 'p4' ? '—' : cfg?.label ?? task.priority}
               </button>
               {/* Icons for extra features */}
-              {isBlocked && <Link2 size={10} className="text-amber-400" title="Bloqueada por dependências" />}
-              {task.estimatedMinutes && <Clock size={10} className="text-[var(--c-text3)]" title={`Estimado: ${task.estimatedMinutes}min`} />}
+              {isBlocked && <span title="Bloqueada por dependências"><Link2 size={10} className="text-amber-400" /></span>}
+              {task.estimatedMinutes && <span title={`Estimado: ${task.estimatedMinutes}min`}><Clock size={10} className="text-[var(--c-text3)]" /></span>}
             </div>
 
             {dueDateLabel && (

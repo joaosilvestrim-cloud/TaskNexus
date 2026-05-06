@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addMonths, subMonths, eachDayOfInterval, isSameMonth, isToday,
-  parseISO, isSameDay, addDays,
+  isSameDay,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
   Inbox, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
-  Plus, LayoutGrid, StickyNote, BookOpen,
-  Hash, LayoutList, Calendar, Sun, Moon, Target,
+  Plus, LayoutGrid,
+  Hash, Calendar, Sun, Moon, Target,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import type { NavView } from '../../types';

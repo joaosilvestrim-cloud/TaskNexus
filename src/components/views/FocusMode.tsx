@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { format, parseISO, isToday, isPast } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { X, Target, CheckCircle2, Clock } from 'lucide-react';
 import { useStore } from '../../store/useStore';

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Timer, X, ChevronDown } from 'lucide-react';
+import { Play, Pause, RotateCcw, Timer, ChevronDown } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 
 type Phase = 'work' | 'break';
