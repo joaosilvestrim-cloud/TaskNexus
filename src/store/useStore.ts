@@ -87,6 +87,9 @@ interface AppState {
   addFilter: (name: string, query: string, color: string) => Promise<SavedFilter>;
   updateFilter: (id: string, changes: Partial<SavedFilter>) => void;
   deleteFilter: (id: string) => void;
+
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
 }
 
 const now = () => new Date().toISOString();
@@ -104,6 +107,8 @@ export const useStore = create<AppState>()((set, get) => ({
   activeView: 'kanban' as const,
   selectedTaskId: null,
   theme: (localStorage.getItem('theme') as 'dark' | 'light') ?? 'dark',
+  sidebarOpen: false,
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
   addKanbanColumn: (label) => {
     const cols = get().kanbanColumns;
@@ -139,7 +144,7 @@ export const useStore = create<AppState>()((set, get) => ({
     set({ kanbanColumns: cols });
   },
 
-  setActiveView: (view) => set({ activeView: view, selectedTaskId: null }),
+  setActiveView: (view) => set({ activeView: view, selectedTaskId: null, sidebarOpen: false }),
   setSelectedTask: (id) => set({ selectedTaskId: id }),
   toggleTheme: () => set((s) => {
     const next = s.theme === 'dark' ? 'light' : 'dark';

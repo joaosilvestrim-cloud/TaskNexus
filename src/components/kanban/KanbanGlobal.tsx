@@ -262,7 +262,7 @@ export function KanbanGlobal() {
     <div className="flex-1 overflow-hidden flex flex-col">
 
       {/* ── Stats bar ── */}
-      <div className="flex items-center gap-6 px-6 py-2 border-b border-[var(--c-border)] bg-[var(--c-elevated)]">
+      <div className="flex items-center gap-3 md:gap-6 px-3 md:px-6 py-2 border-b border-[var(--c-border)] bg-[var(--c-elevated)] overflow-x-auto">
         <div className="flex items-center gap-1.5 text-xs text-[var(--c-text2)]">
           <Activity size={12} className="text-indigo-400" />
           <span><b className="text-[var(--c-text1)]">{activeTasks.length}</b> ativas</span>
@@ -282,7 +282,7 @@ export function KanbanGlobal() {
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="flex flex-wrap items-center gap-3 px-6 py-2.5 border-b border-[var(--c-border)]">
+      <div className="flex flex-wrap items-center gap-2 px-3 md:px-6 py-2 md:py-2.5 border-b border-[var(--c-border)] overflow-x-auto">
         {/* Busca */}
         <div className="flex items-center gap-2 bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-lg px-3 py-1.5 min-w-48">
           <Search size={12} className="text-[var(--c-text3)] shrink-0" />
@@ -353,7 +353,7 @@ export function KanbanGlobal() {
       </div>
 
       {/* ── Board ── */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-3 md:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
         {swimlaneGroups.map((group, groupIdx) => (
           <div key={group.key} className={groupIdx > 0 ? 'mt-6' : ''}>
             {/* Swimlane header */}
@@ -388,7 +388,7 @@ export function KanbanGlobal() {
 
                 return (
                   <div key={col.id}
-                    className={`flex-shrink-0 flex flex-col transition-all duration-200 ${isCollapsed ? 'w-14' : 'w-72'}`}
+                    className={`flex-shrink-0 flex flex-col transition-all duration-200 ${isCollapsed ? 'w-12' : 'w-64 md:w-72'}`}
                     onDragOver={e => {
                       const isColDrag = draggingColId !== null;
                       if (isColDrag) {

@@ -78,7 +78,7 @@ export function PomodoroTimer() {
 
   if (minimized) {
     return (
-      <div className="fixed bottom-4 right-4 z-40">
+      <div className="fixed bottom-16 md:bottom-4 right-4 z-40">
         <button
           onClick={() => setMinimized(false)}
           className={`flex items-center gap-2 px-3 py-2 rounded-xl shadow-lg border text-sm font-mono font-bold
@@ -95,7 +95,7 @@ export function PomodoroTimer() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 w-64 bg-[var(--c-card)] border border-[var(--c-border)] rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed bottom-16 md:bottom-4 right-4 z-40 w-64 bg-[var(--c-card)] border border-[var(--c-border)] rounded-2xl shadow-2xl overflow-hidden">
       {/* Header */}
       <div className={`flex items-center justify-between px-4 py-2.5
         ${phase === 'work' ? 'bg-indigo-600' : 'bg-green-600'}`}>

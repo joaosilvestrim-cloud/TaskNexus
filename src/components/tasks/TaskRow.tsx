@@ -35,7 +35,7 @@ export function TaskRow({ task, showProject }: Props) {
   return (
     <div
       onClick={() => setSelectedTask(isSelected ? null : task.id)}
-      className={`group flex items-start gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all
+      className={`group flex items-start gap-3 px-3 py-3 md:py-2.5 rounded-xl cursor-pointer transition-all
         ${isSelected ? 'bg-[var(--c-active)] ring-1 ring-indigo-300' : 'hover:bg-[var(--c-hover)]'}
         ${task.completed ? 'opacity-50' : ''}`}
     >

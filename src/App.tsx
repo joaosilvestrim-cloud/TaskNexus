@@ -62,7 +62,7 @@ function AppInner() {
     <>
       <div className="flex h-screen w-screen overflow-hidden bg-[var(--c-bg)]">
         <Sidebar />
-        <MainContent />
+        <MainContent onSearchOpen={openSearch} />
       </div>
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
       <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} />

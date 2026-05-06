@@ -95,7 +95,7 @@ function FieldDropdown({
   );
 }
 
-export function TaskDetail() {
+export function TaskDetail({ mobileOverlay = false }: { mobileOverlay?: boolean }) {
   const {
     selectedTaskId, setSelectedTask,
     tasks, updateTask, deleteTask, toggleTask, duplicateTask, convertSubtaskToTask,
@@ -209,10 +209,10 @@ export function TaskDetail() {
   };
 
   return (
-    <aside className="w-[22rem] bg-[var(--c-card)] border-l border-[var(--c-border)] flex flex-col overflow-y-auto shrink-0">
+    <aside className={`${mobileOverlay ? 'w-full' : 'w-[22rem]'} bg-[var(--c-card)] border-l border-[var(--c-border)] flex flex-col overflow-y-auto shrink-0`}>
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--c-border)] sticky top-0 bg-[var(--c-card)] z-10">
+      <div className={`${mobileOverlay ? 'hidden' : 'flex'} items-center justify-between px-5 py-3.5 border-b border-[var(--c-border)] sticky top-0 bg-[var(--c-card)] z-10`}>
         <span className="text-xs font-semibold text-[var(--c-text3)] uppercase tracking-wider">Detalhes</span>
         <div className="flex items-center gap-1">
           <button
