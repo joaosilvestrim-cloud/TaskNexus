@@ -8,6 +8,7 @@ import { PomodoroTimer } from './components/shared/PomodoroTimer';
 import { QuickAddModal } from './components/shared/QuickAddModal';
 import { useSupabaseSync } from './hooks/useSupabaseSync';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useEmailNotifications } from './hooks/useEmailNotifications';
 import { useStore } from './store/useStore';
 
 function AppInner() {
@@ -19,6 +20,7 @@ function AppInner() {
   const openQuickAdd = useCallback(() => setQuickAddOpen(true), []);
 
   useKeyboardShortcuts(openSearch, openQuickAdd);
+  useEmailNotifications();
 
   // ── Push notifications for tasks due within next 60 min ──
   useEffect(() => {
