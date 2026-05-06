@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Inbox, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
   Plus, LayoutGrid,
-  Hash, Calendar, Sun, Moon, Target, X,
+  Hash, Calendar, Sun, Moon, Target, X, FileText,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import type { NavView } from '../../types';
@@ -100,10 +100,11 @@ export function Sidebar() {
       <div className="px-2 mb-1">
         <p className="px-2 py-1 text-xs font-semibold text-[var(--c-text3)] uppercase tracking-wider">Visualizações</p>
         <div className="space-y-0.5">
-          {navBtn('today',    'Hoje',        <CalendarCheck size={14} />, todayCount)}
-          {navBtn('upcoming', 'Em breve',    <CalendarDays size={14} />)}
-          {navBtn('calendar', 'Calendário',  <Calendar size={14} />)}
-          {navBtn('focus',    'Modo Foco',   <Target size={14} />)}
+          {navBtn('today',    'Hoje',             <CalendarCheck size={14} />, todayCount)}
+          {navBtn('upcoming', 'Em breve',        <CalendarDays size={14} />)}
+          {navBtn('calendar', 'Calendário',      <Calendar size={14} />)}
+          {navBtn('focus',    'Modo Foco',       <Target size={14} />)}
+          {navBtn('meetings', 'Atas de Reunião', <FileText size={14} />)}
         </div>
       </div>
 

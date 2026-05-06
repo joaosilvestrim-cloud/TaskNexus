@@ -7,7 +7,9 @@ import {
 import type {
   Task, Project, Section, Label, SavedFilter, NavView,
   ProjectColor, ProjectView, KanbanColumn, Comment, Attachment,
+  MeetingNote, MeetingTemplate, MeetingActionItem,
 } from '../types';
+import { MEETING_TEMPLATES } from '../utils/meetingParser';
 
 const DEFAULT_COLUMNS: KanbanColumn[] = [
   { id: 'backlog',     label: 'Backlog',      color: 'text-gray-400',   accent: 'bg-gray-400',   order: 0, isDefault: true, wipLimit: null, bgColor: null },
@@ -90,6 +92,15 @@ interface AppState {
 
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+
+  // ── Meeting Notes ──────────────────────────────────────────────────────────
+  meetingNotes: MeetingNote[];
+  addMeetingNote: (template?: MeetingTemplate) => MeetingNote;
+  updateMeetingNote: (id: string, changes: Partial<MeetingNote>) => void;
+  deleteMeetingNote: (id: string) => void;
+  convertActionItems: (meetingId: string, itemIds: string[]) => Promise<void>;
+  selectedMeetingId: string | null;
+  setSelectedMeeting: (id: string | null) => void;
 }
 
 const now = () => new Date().toISOString();
@@ -500,5 +511,83 @@ export const useStore = create<AppState>()((set, get) => ({
   deleteFilter: (id) => {
     set((s) => ({ filters: s.filters.filter((f) => f.id !== id) }));
     filtersApi.delete(id).catch((err) => console.error('[deleteFilter]', err));
+  },
+
+  // ── Meeting Notes (localStorage) ─────────────────────────────────────────
+  meetingNotes: (() => {
+    try { return JSON.parse(localStorage.getItem('meeting_notes') ?? '[]') as MeetingNote[]; }
+    catch { return []; }
+  })(),
+  selectedMeetingId: null,
+  setSelectedMeeting: (id) => set({ selectedMeetingId: id }),
+
+  addMeetingNote: (template = 'blank') => {
+    const tpl = MEETING_TEMPLATES[template] ?? MEETING_TEMPLATES.blank;
+    const note: MeetingNote = {
+      id: uuid(),
+      title: 'Nova Ata',
+      date: new Date().toISOString().split('T')[0],
+      participants: [],
+      agenda: tpl.agenda,
+      discussion: tpl.discussion,
+      decisions: tpl.decisions,
+      actionItems: [],
+      template,
+      projectId: null,
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    set((s) => {
+      const next = [note, ...s.meetingNotes];
+      localStorage.setItem('meeting_notes', JSON.stringify(next));
+      return { meetingNotes: next, selectedMeetingId: note.id };
+    });
+    return note;
+  },
+
+  updateMeetingNote: (id, changes) => {
+    set((s) => {
+      const next = s.meetingNotes.map((m) =>
+        m.id === id ? { ...m, ...changes, updatedAt: now() } : m
+      );
+      localStorage.setItem('meeting_notes', JSON.stringify(next));
+      return { meetingNotes: next };
+    });
+  },
+
+  deleteMeetingNote: (id) => {
+    set((s) => {
+      const next = s.meetingNotes.filter((m) => m.id !== id);
+      localStorage.setItem('meeting_notes', JSON.stringify(next));
+      return {
+        meetingNotes: next,
+        selectedMeetingId: s.selectedMeetingId === id ? null : s.selectedMeetingId,
+      };
+    });
+  },
+
+  convertActionItems: async (meetingId, itemIds) => {
+    const meeting = get().meetingNotes.find((m) => m.id === meetingId);
+    if (!meeting) return;
+    const updatedItems: MeetingActionItem[] = [...meeting.actionItems];
+
+    for (const itemId of itemIds) {
+      const item = updatedItems.find((i) => i.id === itemId);
+      if (!item || item.converted) continue;
+
+      const task = await get().addTask({
+        title: item.text,
+        priority: item.priority,
+        dueDate: item.dueDate,
+        projectId: meeting.projectId,
+        description: `📋 Ata: ${meeting.title} (${meeting.date})`,
+        status: 'todo',
+      });
+
+      const idx = updatedItems.findIndex((i) => i.id === itemId);
+      updatedItems[idx] = { ...item, converted: true, taskId: task.id };
+    }
+
+    get().updateMeetingNote(meetingId, { actionItems: updatedItems });
   },
 }));

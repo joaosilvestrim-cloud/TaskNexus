@@ -124,6 +124,34 @@ export type NavView =
   | 'kanban'
   | 'calendar'
   | 'focus'
+  | 'meetings'
   | { type: 'project'; id: string }
   | { type: 'label'; id: string }
   | { type: 'filter'; id: string };
+
+// ── Meeting Notes ─────────────────────────────────────────────────────────────
+export type MeetingTemplate = 'blank' | 'client' | 'daily' | 'sprint' | 'retrospective';
+
+export interface MeetingActionItem {
+  id: string;
+  text: string;
+  priority: Priority;
+  dueDate: string | null;
+  converted: boolean;      // already turned into a task
+  taskId: string | null;   // linked task id after conversion
+}
+
+export interface MeetingNote {
+  id: string;
+  title: string;
+  date: string;            // ISO date
+  participants: string[];
+  agenda: string;
+  discussion: string;
+  decisions: string;
+  actionItems: MeetingActionItem[];
+  template: MeetingTemplate;
+  projectId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
