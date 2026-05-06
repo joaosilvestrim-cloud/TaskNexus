@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import mammoth from 'mammoth';
 import {
   Calendar, Users, X, Zap, ArrowRight, CheckCircle2,
   Circle, Trash2, FileText, Upload, Sparkles,
@@ -169,7 +170,15 @@ Sem markdown, sem explicações, apenas o JSON.`;
 
   const handleFile = async (file: File) => {
     if (!file) return;
-    const text = await file.text();
+    let text = '';
+    if (file.name.endsWith('.docx')) {
+      // Extract plain text from Word document
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      text = result.value;
+    } else {
+      text = await file.text();
+    }
     await processTranscript(text, file.name);
   };
 
@@ -276,11 +285,11 @@ Sem markdown, sem explicações, apenas o JSON.`;
               <>
                 <Upload size={24} className="text-[var(--c-text3)]" />
                 <p className="text-sm font-medium text-[var(--c-text1)]">Arraste ou clique para importar transcrição</p>
-                <p className="text-xs text-[var(--c-text3)]">.txt · .vtt · .srt · .md — O Gemini preenche a ata automaticamente</p>
+                <p className="text-xs text-[var(--c-text3)]">.docx · .txt · .vtt · .srt · .md — O Gemini preenche a ata automaticamente</p>
               </>
             )}
           </div>
-          <input ref={fileInputRef} type="file" accept=".txt,.vtt,.srt,.md,.text"
+          <input ref={fileInputRef} type="file" accept=".docx,.txt,.vtt,.srt,.md,.text"
             className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
         </div>
       )}
