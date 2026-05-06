@@ -3,9 +3,8 @@
  * Sempre envia para joao.silvestrim@gmail.com
  */
 
-const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY as string;
-const TO_EMAIL = 'joao.silvestrim@gmail.com';
-const FROM_EMAIL = 'TaskNexus <onboarding@resend.dev>';
+// Calls our own Vercel API route (avoids Resend CORS restriction)
+const EMAIL_API = '/api/send-email';
 
 interface SendEmailOptions {
   subject: string;
@@ -14,30 +13,16 @@ interface SendEmailOptions {
 }
 
 export async function sendEmail(opts: SendEmailOptions): Promise<boolean> {
-  if (!RESEND_API_KEY) {
-    console.warn('[email] VITE_RESEND_API_KEY não configurado');
-    return false;
-  }
-
   try {
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await fetch(EMAIL_API, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: [TO_EMAIL],
-        subject: opts.subject,
-        html: opts.html,
-        text: opts.text ?? '',
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject: opts.subject, html: opts.html, text: opts.text ?? '' }),
     });
 
     if (!res.ok) {
       const err = await res.json();
-      console.error('[email] Resend error:', err);
+      console.error('[email] API error:', err);
       return false;
     }
 
