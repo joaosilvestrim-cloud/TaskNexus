@@ -12,7 +12,7 @@ import { useEmailNotifications } from './hooks/useEmailNotifications';
 import { useStore } from './store/useStore';
 
 function AppInner() {
-  const { tasks } = useStore();
+  const { tasks, focusActive } = useStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
 
@@ -68,7 +68,7 @@ function AppInner() {
       </div>
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
       <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} />
-      <PomodoroTimer />
+      {focusActive && <PomodoroTimer />}
     </>
   );
 }
