@@ -885,6 +885,11 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
                 {task.priority === 'p4' ? '—' : cfg?.label ?? task.priority}
               </button>
               {/* Icons for extra features */}
+              {task.recurrence?.type !== 'none' && task.recurrence?.type && (
+                <span title={`Recorrente: ${task.recurrence.type}`} className="flex items-center gap-0.5 text-xs text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-full font-medium">
+                  🔁
+                </span>
+              )}
               {isBlocked && <span title="Bloqueada por dependências"><Link2 size={10} className="text-amber-400" /></span>}
               {task.estimatedMinutes && <span title={`Estimado: ${task.estimatedMinutes}min`}><Clock size={10} className="text-[var(--c-text3)]" /></span>}
             </div>
