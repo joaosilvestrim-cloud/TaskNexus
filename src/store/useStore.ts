@@ -52,10 +52,12 @@ interface AppState {
   activeView: NavView;
   selectedTaskId: string | null;
   theme: 'dark' | 'light';
+  focusActive: boolean;
 
   setActiveView: (view: NavView) => void;
   setSelectedTask: (id: string | null) => void;
   toggleTheme: () => void;
+  toggleFocus: () => void;
 
   addTask: (partial: Partial<Task> & { title: string }) => Promise<Task>;
   updateTask: (id: string, changes: Partial<Task>) => void;
@@ -147,6 +149,7 @@ export const useStore = create<AppState>()((set, get) => ({
   activeView: 'kanban' as const,
   selectedTaskId: null,
   theme: (localStorage.getItem('theme') as 'dark' | 'light') ?? 'dark',
+  focusActive: localStorage.getItem('focus_active') === 'true',
   sidebarOpen: false,
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
@@ -185,6 +188,11 @@ export const useStore = create<AppState>()((set, get) => ({
   },
 
   setActiveView: (view) => set({ activeView: view, selectedTaskId: null, sidebarOpen: false }),
+  toggleFocus: () => set((s) => {
+    const next = !s.focusActive;
+    localStorage.setItem('focus_active', String(next));
+    return { focusActive: next };
+  }),
   setSelectedTask: (id) => set({ selectedTaskId: id }),
   toggleTheme: () => set((s) => {
     const next = s.theme === 'dark' ? 'light' : 'dark';
