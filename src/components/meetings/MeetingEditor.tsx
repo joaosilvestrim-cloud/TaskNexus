@@ -174,9 +174,10 @@ Sem markdown, sem explicações, apenas o JSON.`;
 
   const handleFile = async (file: File) => {
     if (!file) return;
+    // Save to file repository immediately, regardless of processing
+    await addFilesToRepo([file]);
     let text = '';
     if (file.name.endsWith('.docx')) {
-      // Extract plain text from Word document
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
       text = result.value;
