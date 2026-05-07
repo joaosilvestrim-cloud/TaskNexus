@@ -141,6 +141,15 @@ export interface MeetingActionItem {
   taskId: string | null;   // linked task id after conversion
 }
 
+export interface MeetingFile {
+  id: string;
+  name: string;
+  size: number;       // bytes
+  type: string;       // MIME type
+  dataUrl: string;    // base64 data URL for local storage/download
+  uploadedAt: string; // ISO string
+}
+
 export interface MeetingNote {
   id: string;
   title: string;
@@ -150,6 +159,7 @@ export interface MeetingNote {
   discussion: string;
   decisions: string;
   actionItems: MeetingActionItem[];
+  files: MeetingFile[];
   template: MeetingTemplate;
   projectId: string | null;
   linkedTaskId: string | null; // Kanban card linked to this meeting

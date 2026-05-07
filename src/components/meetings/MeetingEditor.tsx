@@ -4,12 +4,12 @@ import {
   Calendar, Users, X, Zap, ArrowRight, CheckCircle2,
   Circle, Trash2, FileText, Upload, Sparkles,
   Wand2, ListChecks, BookOpen, Lightbulb, Loader2, Tag, ChevronDown,
-  LayoutGrid,
+  LayoutGrid, Download, Image, Music, Film, Archive, File, FolderOpen,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { parseActionItems } from '../../utils/meetingParser';
 import { improveNote, extractActionItems, summarizeNote, suggestNextSteps } from '../../lib/gemini';
-import type { MeetingNote, MeetingActionItem, Priority } from '../../types';
+import type { MeetingNote, MeetingActionItem, MeetingFile, Priority } from '../../types';
 
 const P_COLOR: Record<Priority, string> = {
   p1: 'text-red-500', p2: 'text-orange-400', p3: 'text-blue-400', p4: 'text-gray-400',
@@ -34,7 +34,10 @@ export function MeetingEditor({ meetingId }: Props) {
   const [dragOver, setDragOver]                 = useState(false);
   const [uploadProcessing, setUploadProcessing] = useState(false);
   const [uploadDone, setUploadDone]             = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showFiles, setShowFiles]               = useState(false);
+  const [fileDragOver, setFileDragOver]         = useState(false);
+  const fileInputRef     = useRef<HTMLInputElement>(null);
+  const fileRepoInputRef = useRef<HTMLInputElement>(null);
   const saveTimer    = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
@@ -189,6 +192,44 @@ Sem markdown, sem explicações, apenas o JSON.`;
     if (file) handleFile(file);
   };
 
+  // ── File repository ────────────────────────────────────────────────────────
+  const addFilesToRepo = useCallback(async (fileList: FileList | File[]) => {
+    const arr = Array.from(fileList);
+    const newFiles: MeetingFile[] = await Promise.all(
+      arr.map(f => new Promise<MeetingFile>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+          id: crypto.randomUUID(),
+          name: f.name,
+          size: f.size,
+          type: f.type || 'application/octet-stream',
+          dataUrl: reader.result as string,
+          uploadedAt: new Date().toISOString(),
+        });
+        reader.onerror = reject;
+        reader.readAsDataURL(f);
+      }))
+    );
+    const updated = [...(meeting.files ?? []), ...newFiles];
+    saveNow({ files: updated });
+  }, [meeting]);
+
+  const deleteFile = (id: string) => {
+    saveNow({ files: (meeting.files ?? []).filter(f => f.id !== id) });
+  };
+
+  const downloadFile = (f: MeetingFile) => {
+    const a = document.createElement('a');
+    a.href = f.dataUrl;
+    a.download = f.name;
+    a.click();
+  };
+
+  const handleRepoDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setFileDragOver(false);
+    if (e.dataTransfer.files.length) addFilesToRepo(e.dataTransfer.files);
+  };
+
   // ── Convert to tasks ───────────────────────────────────────────────────────
   const handleConvert = async () => {
     const ids = [...selectedItems].filter(id => !meeting.actionItems.find(i => i.id === id)?.converted);
@@ -260,11 +301,17 @@ Sem markdown, sem explicações, apenas o JSON.`;
               <LayoutGrid size={12} /> Card criado no Kanban
             </button>
           )}
+          <button onClick={() => setShowFiles(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+              showFiles ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : 'border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-hover)]'
+            }`}>
+            <FolderOpen size={13} /> Arquivos {(meeting.files?.length ?? 0) > 0 && <span className="bg-emerald-500/20 text-emerald-400 px-1.5 rounded-full">{meeting.files.length}</span>}
+          </button>
           <button onClick={() => setShowUpload(v => !v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
               showUpload ? 'bg-blue-500/15 border-blue-500/30 text-blue-400' : 'border-[var(--c-border)] text-[var(--c-text3)] hover:bg-[var(--c-hover)]'
             }`}>
-            <Upload size={13} /> Upload
+            <Upload size={13} /> Transcrição
           </button>
           <button onClick={() => setShowAI(v => !v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
@@ -302,6 +349,51 @@ Sem markdown, sem explicações, apenas o JSON.`;
           </div>
           <input ref={fileInputRef} type="file" accept=".docx,.txt,.vtt,.srt,.md,.text"
             className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
+        </div>
+      )}
+
+      {/* ── Files repository panel ───────────────────────────────────────── */}
+      {showFiles && (
+        <div className="px-6 py-4 border-b border-[var(--c-border)] bg-emerald-500/5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+              <FolderOpen size={13} /> Repositório de Arquivos
+            </span>
+            <button
+              onClick={() => fileRepoInputRef.current?.click()}
+              className="flex items-center gap-1.5 px-3 py-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+            >
+              <Upload size={11} /> Adicionar arquivo
+            </button>
+            <input ref={fileRepoInputRef} type="file" multiple className="hidden"
+              onChange={e => e.target.files && addFilesToRepo(e.target.files)} />
+          </div>
+
+          {/* Drop zone */}
+          <div
+            onDragOver={e => { e.preventDefault(); setFileDragOver(true); }}
+            onDragLeave={() => setFileDragOver(false)}
+            onDrop={handleRepoDrop}
+            onClick={() => fileRepoInputRef.current?.click()}
+            className={`flex items-center justify-center gap-2 py-3 mb-3 rounded-xl border-2 border-dashed cursor-pointer transition-all text-xs ${
+              fileDragOver
+                ? 'border-emerald-400 bg-emerald-500/10 text-emerald-400'
+                : 'border-[var(--c-border)] text-[var(--c-text3)] hover:border-emerald-400/50 hover:text-emerald-400/70'
+            }`}
+          >
+            <Upload size={13} /> Arraste qualquer arquivo aqui para guardar na ata
+          </div>
+
+          {/* File list */}
+          {(meeting.files ?? []).length === 0 ? (
+            <p className="text-xs text-[var(--c-text3)] text-center py-2">Nenhum arquivo anexado ainda.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {(meeting.files ?? []).map(f => (
+                <FileCard key={f.id} file={f} onDownload={() => downloadFile(f)} onDelete={() => deleteFile(f.id)} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -538,6 +630,53 @@ function ActionTextInput({ meeting, onSave }: { meeting: MeetingNote; onSave: (i
         </button>
         <button onClick={() => { setOpen(false); setText(''); }} className="px-3 py-1.5 text-xs text-[var(--c-text3)] hover:text-[var(--c-text2)] transition-colors">
           Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── FileCard ───────────────────────────────────────────────────────────────────
+function fileIcon(type: string) {
+  if (type.startsWith('image/'))       return <Image size={18} className="text-blue-400" />;
+  if (type.startsWith('audio/'))       return <Music size={18} className="text-purple-400" />;
+  if (type.startsWith('video/'))       return <Film size={18} className="text-pink-400" />;
+  if (type.includes('pdf'))            return <FileText size={18} className="text-red-400" />;
+  if (type.includes('word') || type.includes('document')) return <FileText size={18} className="text-blue-500" />;
+  if (type.includes('sheet') || type.includes('excel'))   return <FileText size={18} className="text-green-500" />;
+  if (type.includes('zip') || type.includes('rar') || type.includes('tar')) return <Archive size={18} className="text-amber-400" />;
+  return <File size={18} className="text-[var(--c-text3)]" />;
+}
+
+function fmtSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function FileCard({ file, onDownload, onDelete }: { file: MeetingFile; onDownload: () => void; onDelete: () => void }) {
+  const isImage = file.type.startsWith('image/');
+  return (
+    <div className="group flex items-center gap-3 px-3 py-2.5 rounded-xl border border-[var(--c-border)] bg-[var(--c-card)] hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all">
+      {isImage ? (
+        <img src={file.dataUrl} alt={file.name} className="w-9 h-9 rounded-lg object-cover shrink-0 border border-[var(--c-border)]" />
+      ) : (
+        <div className="w-9 h-9 rounded-lg bg-[var(--c-hover)] flex items-center justify-center shrink-0">
+          {fileIcon(file.type)}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-[var(--c-text1)] truncate" title={file.name}>{file.name}</p>
+        <p className="text-xs text-[var(--c-text3)]">{fmtSize(file.size)}</p>
+      </div>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+        <button onClick={onDownload} title="Baixar"
+          className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-emerald-500/15 text-[var(--c-text3)] hover:text-emerald-400 transition-colors">
+          <Download size={12} />
+        </button>
+        <button onClick={onDelete} title="Remover"
+          className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-[var(--c-text3)] hover:text-red-400 transition-colors">
+          <Trash2 size={12} />
         </button>
       </div>
     </div>

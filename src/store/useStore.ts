@@ -541,7 +541,7 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       const raw = JSON.parse(localStorage.getItem('meeting_notes') ?? '[]') as MeetingNote[];
       // Migrate old notes that don't have linkedTaskId
-      return raw.map(m => ({ ...m, linkedTaskId: m.linkedTaskId ?? null }));
+      return raw.map(m => ({ ...m, linkedTaskId: m.linkedTaskId ?? null, files: m.files ?? [] }));
     }
     catch { return []; }
   })(),
@@ -559,6 +559,7 @@ export const useStore = create<AppState>()((set, get) => ({
       discussion: tpl.discussion,
       decisions: tpl.decisions,
       actionItems: [],
+      files: [],
       template,
       projectId: null,
       linkedTaskId: null,
