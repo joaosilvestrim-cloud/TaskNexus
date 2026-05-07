@@ -7,9 +7,50 @@ import {
 import type {
   Task, Project, Section, Label, SavedFilter, NavView,
   ProjectColor, ProjectView, KanbanColumn, Comment, Attachment,
-  MeetingNote, MeetingTemplate, MeetingActionItem,
+  MeetingNote, MeetingTemplate, MeetingActionItem, Recurrence,
 } from '../types';
 import { MEETING_TEMPLATES } from '../utils/meetingParser';
+
+// ── Recurrence: calculate next due date ──────────────────────────────────────
+function calcNextDate(current: string, rec: Recurrence): string | null {
+  if (!rec || rec.type === 'none') return null;
+  const base = new Date(current + 'T00:00:00');
+
+  if (rec.type === 'daily') {
+    base.setDate(base.getDate() + (rec.interval ?? 1));
+    return base.toISOString().split('T')[0];
+  }
+
+  if (rec.type === 'weekly') {
+    if (rec.daysOfWeek && rec.daysOfWeek.length > 0) {
+      // Find next matching weekday
+      const sorted = [...rec.daysOfWeek].sort((a, b) => a - b);
+      let next = new Date(base);
+      for (let i = 1; i <= 7; i++) {
+        next = new Date(base);
+        next.setDate(base.getDate() + i);
+        if (sorted.includes(next.getDay())) break;
+      }
+      return next.toISOString().split('T')[0];
+    }
+    base.setDate(base.getDate() + 7 * (rec.interval ?? 1));
+    return base.toISOString().split('T')[0];
+  }
+
+  if (rec.type === 'monthly') {
+    const day = rec.dayOfMonth ?? base.getDate();
+    base.setMonth(base.getMonth() + (rec.interval ?? 1));
+    base.setDate(day);
+    return base.toISOString().split('T')[0];
+  }
+
+  if (rec.type === 'custom' && rec.interval) {
+    base.setDate(base.getDate() + rec.interval);
+    return base.toISOString().split('T')[0];
+  }
+
+  return null;
+}
 
 const DEFAULT_COLUMNS: KanbanColumn[] = [
   { id: 'backlog',     label: 'Backlog',      color: 'text-gray-400',   accent: 'bg-gray-400',   order: 0, isDefault: true, wipLimit: null, bgColor: null },
@@ -276,6 +317,29 @@ export const useStore = create<AppState>()((set, get) => ({
       tasks: s.tasks.map((t) => t.id === id ? { ...t, ...changes, updatedAt: now() } : t),
     }));
 
+    // ── Recurrence: spawn next occurrence when marking complete ──────────────
+    if (changes.completed === true && previousTask && previousTask.recurrence?.type !== 'none') {
+      const rec = previousTask.recurrence;
+      const baseDate = previousTask.dueDate ?? new Date().toISOString().split('T')[0];
+      const nextDate = calcNextDate(baseDate, rec);
+      if (nextDate && (!rec.endDate || nextDate <= rec.endDate)) {
+        get().addTask({
+          title: previousTask.title,
+          description: previousTask.description,
+          projectId: previousTask.projectId,
+          sectionId: previousTask.sectionId,
+          priority: previousTask.priority,
+          labelIds: previousTask.labelIds,
+          dueDate: nextDate,
+          dueTime: previousTask.dueTime,
+          status: 'todo',
+          recurrence: rec,
+          colorTag: previousTask.colorTag,
+          estimatedMinutes: previousTask.estimatedMinutes,
+        }).catch(err => console.error('[recurrence spawn]', err));
+      }
+    }
+
     // Send DB fields to Supabase and roll back on failure
     if (Object.keys(dbChanges).length > 0) {
       tasksApi.update(id, dbChanges).catch((err) => {
@@ -313,6 +377,28 @@ export const useStore = create<AppState>()((set, get) => ({
         t.id === id ? { ...t, completed, status, completedAt, updatedAt: now() } : t,
       ),
     }));
+    // ── Recurrence: spawn next occurrence when marking complete ──────────────
+    if (completed && task.recurrence?.type !== 'none') {
+      const baseDate = task.dueDate ?? new Date().toISOString().split('T')[0];
+      const nextDate = calcNextDate(baseDate, task.recurrence);
+      if (nextDate && (!task.recurrence.endDate || nextDate <= task.recurrence.endDate)) {
+        get().addTask({
+          title: task.title,
+          description: task.description,
+          projectId: task.projectId,
+          sectionId: task.sectionId,
+          priority: task.priority,
+          labelIds: task.labelIds,
+          dueDate: nextDate,
+          dueTime: task.dueTime,
+          status: 'todo',
+          recurrence: task.recurrence,
+          colorTag: task.colorTag,
+          estimatedMinutes: task.estimatedMinutes,
+        }).catch(err => console.error('[recurrence spawn toggleTask]', err));
+      }
+    }
+
     tasksApi.update(id, { completed, status, completedAt })
       .catch((err) => {
         console.error('[toggleTask] Supabase error — rolling back:', err);
