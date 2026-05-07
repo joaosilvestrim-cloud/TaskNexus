@@ -174,17 +174,22 @@ Sem markdown, sem explicações, apenas o JSON.`;
 
   const handleFile = async (file: File) => {
     if (!file) return;
-    // Save to file repository immediately, regardless of processing
+    // 1. Save original file to repository immediately
     await addFilesToRepo([file]);
+    // 2. Extract text and send to Gemini
     let text = '';
-    if (file.name.endsWith('.docx')) {
-      const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer });
-      text = result.value;
-    } else {
-      text = await file.text();
+    try {
+      if (file.name.endsWith('.docx')) {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        text = result.value;
+      } else {
+        text = await file.text();
+      }
+      await processTranscript(text, file.name);
+    } catch (e) {
+      console.error('[handleFile] transcript error', e);
     }
-    await processTranscript(text, file.name);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -194,29 +199,38 @@ Sem markdown, sem explicações, apenas o JSON.`;
   };
 
   // ── File repository ────────────────────────────────────────────────────────
-  const addFilesToRepo = useCallback(async (fileList: FileList | File[]) => {
+  const readFileAsDataUrl = (file: File): Promise<MeetingFile> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = () => resolve({
+        id: crypto.randomUUID(),
+        name: file.name,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+        dataUrl: reader.result as string,
+        uploadedAt: new Date().toISOString(),
+      });
+      reader.onerror = () => reject(new Error(`Falha ao ler ${file.name}`));
+      reader.readAsDataURL(file);
+    });
+
+  const addFilesToRepo = async (fileList: FileList | File[]) => {
     const arr = Array.from(fileList);
-    const newFiles: MeetingFile[] = await Promise.all(
-      arr.map(f => new Promise<MeetingFile>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({
-          id: crypto.randomUUID(),
-          name: f.name,
-          size: f.size,
-          type: f.type || 'application/octet-stream',
-          dataUrl: reader.result as string,
-          uploadedAt: new Date().toISOString(),
-        });
-        reader.onerror = reject;
-        reader.readAsDataURL(f);
-      }))
-    );
-    const updated = [...(meeting.files ?? []), ...newFiles];
-    saveNow({ files: updated });
-  }, [meeting]);
+    if (!arr.length) return;
+    try {
+      const newFiles = await Promise.all(arr.map(readFileAsDataUrl));
+      // Read current state from store directly to avoid stale closure
+      const current = useStore.getState().meetingNotes.find(m => m.id === meetingId);
+      const updated  = [...(current?.files ?? []), ...newFiles];
+      updateMeetingNote(meetingId, { files: updated });
+    } catch (e) {
+      console.error('[addFilesToRepo]', e);
+    }
+  };
 
   const deleteFile = (id: string) => {
-    saveNow({ files: (meeting.files ?? []).filter(f => f.id !== id) });
+    const current = useStore.getState().meetingNotes.find(m => m.id === meetingId);
+    updateMeetingNote(meetingId, { files: (current?.files ?? []).filter(f => f.id !== id) });
   };
 
   const downloadFile = (f: MeetingFile) => {
@@ -227,7 +241,8 @@ Sem markdown, sem explicações, apenas o JSON.`;
   };
 
   const handleRepoDrop = (e: React.DragEvent) => {
-    e.preventDefault(); setFileDragOver(false);
+    e.preventDefault();
+    setFileDragOver(false);
     if (e.dataTransfer.files.length) addFilesToRepo(e.dataTransfer.files);
   };
 
