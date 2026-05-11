@@ -828,10 +828,16 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
     updateTask(task.id, { priority: next });
   };
 
+  // Card background from project color
+  const projHex = project ? PROJECT_HEX[project.color] : null;
+  const cardBgStyle = projHex
+    ? { backgroundColor: projHex + '22', borderColor: projHex + '55' }
+    : {};
+
   // Left border color from colorTag or priority
   const borderStyle = task.colorTag
-    ? { borderLeftColor: task.colorTag, borderLeftWidth: '4px', borderLeftStyle: 'solid' as const }
-    : {};
+    ? { ...cardBgStyle, borderLeftColor: task.colorTag, borderLeftWidth: '4px', borderLeftStyle: 'solid' as const }
+    : cardBgStyle;
   const borderClass = task.colorTag ? '' : (PRIORITY_BORDER[task.priority] ?? '');
 
   return (
