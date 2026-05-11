@@ -9,6 +9,14 @@
   animation: today-pulse 2s ease-in-out infinite;
 }
 
+@keyframes overdue-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6), 0 0 0 0 rgba(239, 68, 68, 0.3); }
+  50%       { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35), 0 0 10px 4px rgba(239, 68, 68, 0.15); }
+}
+.overdue-glow {
+  animation: overdue-pulse 1.4s ease-in-out infinite;
+}
+
 /* ── Tema Claro (padrão) ─────────────────────────────────────────────────── */
 :root {
   --c-bg:       #f0f2f5;

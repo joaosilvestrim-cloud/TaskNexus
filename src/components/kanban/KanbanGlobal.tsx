@@ -836,7 +836,8 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
           : 'bg-[var(--c-card)] border-[var(--c-border)] hover:border-[var(--c-border2)] hover:bg-[var(--c-hover)]'}
         ${task.completed ? 'opacity-60' : ''}
         ${isDragOver ? 'border-t-2 border-t-indigo-400' : ''}
-        ${isDueToday && !task.completed ? 'today-glow border-green-500/60' : ''}`}
+        ${isOverdue ? 'overdue-glow border-red-500/60' : ''}
+        ${isDueToday && !task.completed && !isOverdue ? 'today-glow border-green-500/60' : ''}`}
     >
       {/* ⬅️➡️ Botões de mover */}
       <div className="absolute top-2 right-2 hidden group-hover:flex items-center gap-1 z-10">
