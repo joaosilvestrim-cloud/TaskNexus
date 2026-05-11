@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Plus, Calendar, Search, ChevronLeft, ChevronRight, X,
   ChevronDown, AlertCircle, CheckCircle2, Activity, Pencil, Trash2, Check,
-  Settings, Link2, Clock,
+  Settings, Link2, Clock, LayoutList,
 } from 'lucide-react';
 import { format, parseISO, isToday, addDays, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -23,6 +23,13 @@ const PROJECT_DOT: Record<string, string> = {
   red: 'bg-red-500', orange: 'bg-orange-500', yellow: 'bg-yellow-500',
   green: 'bg-green-500', teal: 'bg-teal-500', blue: 'bg-blue-500',
   indigo: 'bg-indigo-500', purple: 'bg-purple-500', pink: 'bg-pink-500', gray: 'bg-gray-500',
+};
+
+// Project color → hex tint for column background
+const PROJECT_HEX: Record<string, string> = {
+  red: '#ef4444', orange: '#f97316', yellow: '#eab308',
+  green: '#22c55e', teal: '#14b8a6', blue: '#3b82f6',
+  indigo: '#6366f1', purple: '#a855f7', pink: '#ec4899', gray: '#6b7280',
 };
 
 const COLUMN_COLOR_OPTIONS = [
@@ -61,6 +68,7 @@ export function KanbanGlobal() {
   const [swimlane, setSwimlane]         = useState<SwimlaneMode>('none');
 
   // New-column modal
+  const [compact, setCompact]           = useState(false);
   const [addingCol, setAddingCol]       = useState(false);
   const [newColLabel, setNewColLabel]   = useState('');
   const [newColColor, setNewColColor]   = useState(COLUMN_COLOR_OPTIONS[4]); // purple default
@@ -334,8 +342,18 @@ export function KanbanGlobal() {
           })}
         </div>
 
+        {/* Compact toggle */}
+        <button
+          onClick={() => setCompact(v => !v)}
+          title={compact ? 'Modo normal' : 'Modo compacto'}
+          className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border transition-all ml-auto
+            ${compact ? 'bg-indigo-600 text-white border-indigo-600' : 'border-[var(--c-border)] text-[var(--c-text3)] hover:border-[var(--c-border2)]'}`}
+        >
+          <LayoutList size={12} /> {compact ? 'Compacto' : 'Normal'}
+        </button>
+
         {/* Swimlane toggle */}
-        <div className="flex items-center gap-1 ml-auto">
+        <div className="flex items-center gap-1">
           <span className="text-xs text-[var(--c-text3)] mr-1">Raia:</span>
           {(['none', 'project', 'priority'] as SwimlaneMode[]).map(mode => (
             <button key={mode}
@@ -541,7 +559,15 @@ export function KanbanGlobal() {
                     {!isCollapsed && (
                       <div
                         className="rounded-xl min-h-16 transition-all"
-                        style={col.bgColor ? { backgroundColor: col.bgColor + '18' } : {}}
+                        style={(() => {
+                          if (col.bgColor) return { backgroundColor: col.bgColor + '18' };
+                          if (filterProject) {
+                            const proj = projects.find(p => p.id === filterProject);
+                            const hex = proj ? PROJECT_HEX[proj.color] : null;
+                            if (hex) return { backgroundColor: hex + '10' };
+                          }
+                          return {};
+                        })()}
                       >
                         <div className="space-y-2 p-1">
                           {col.id === 'backlog' && swimlane === 'none'
@@ -558,6 +584,7 @@ export function KanbanGlobal() {
                                 onDrop={handleDrop}
                                 setDraggingTaskId={setDraggingTaskId}
                                 draggingTaskId={draggingTaskId}
+                                compact={compact}
                               />
                             )
                             : colTasks.map(t => (
@@ -570,6 +597,7 @@ export function KanbanGlobal() {
                                 onDrop={handleDrop}
                                 setDraggingTaskId={setDraggingTaskId}
                                 draggingTaskId={draggingTaskId}
+                                compact={compact}
                               />
                             ))
                           }
@@ -666,7 +694,7 @@ export function KanbanGlobal() {
 }
 
 // ── Backlog agrupado com atalhos de dia ───────────────────────────────────────
-function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMove, colIdx, colCount, onDrop, setDraggingTaskId, draggingTaskId }: {
+function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMove, colIdx, colCount, onDrop, setDraggingTaskId, draggingTaskId, compact }: {
   tasks: Task[];
   onSelect: (id: string | null) => void;
   selectedId: string | null;
@@ -678,6 +706,7 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMov
   onDrop: (e: React.DragEvent, status: string, insertBeforeId?: string) => void;
   setDraggingTaskId: (id: string | null) => void;
   draggingTaskId: string | null;
+  compact?: boolean;
 }) {
   const [hoveredZone, setHoveredZone] = useState<'today' | 'tomorrow' | null>(null);
 
@@ -748,6 +777,7 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMov
                 onDrop={onDrop}
                 setDraggingTaskId={setDraggingTaskId}
                 draggingTaskId={draggingTaskId}
+                compact={compact}
               />
             ))}
           </div>
@@ -758,7 +788,7 @@ function BacklogGrouped({ tasks, onSelect, selectedId, getProject, labels, onMov
 }
 
 // ── Card de tarefa ────────────────────────────────────────────────────────────
-function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colIdx, colCount, colStatus, onDrop, setDraggingTaskId, draggingTaskId }: {
+function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colIdx, colCount, colStatus, onDrop, setDraggingTaskId, draggingTaskId, compact }: {
   task: Task;
   isSelected: boolean;
   onSelect: () => void;
@@ -771,6 +801,7 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
   onDrop: (e: React.DragEvent, status: string, insertBeforeId?: string) => void;
   setDraggingTaskId: (id: string | null) => void;
   draggingTaskId: string | null;
+  compact?: boolean;
 }) {
   const project = getProject(task.projectId);
   const cfg = PRIORITY_CONFIG[task.priority];
@@ -857,7 +888,7 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
         )}
       </div>
 
-      <div className="p-3">
+      <div className={compact ? 'px-3 py-1.5' : 'p-3'}>
         <div className="flex items-start gap-2">
           {/* Checkbox */}
           <button
@@ -869,64 +900,84 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
           </button>
 
           <div className="flex-1 min-w-0 pr-6">
-            <p className={`text-sm leading-snug ${task.completed ? 'line-through text-[var(--c-text3)]' : 'text-[var(--c-text1)]'}`}>
+            <p className={`leading-snug ${compact ? 'text-xs' : 'text-sm'} ${task.completed ? 'line-through text-[var(--c-text3)]' : 'text-[var(--c-text1)]'}`}>
               {task.title}
             </p>
 
-            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              {project && (
-                <div className="flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${PROJECT_DOT[project.color] ?? 'bg-gray-500'}`} />
-                  <span className="text-xs text-[var(--c-text3)]">{project.name}</span>
-                </div>
-              )}
-              <button onClick={cyclePriority} title="Clique para mudar prioridade"
-                className={`text-xs font-bold px-1.5 py-0.5 rounded transition-all hover:opacity-75
-                  ${task.priority === 'p4' ? 'text-[var(--c-text3)] hover:text-[var(--c-text2)]' : cfg?.color ?? ''}`}>
-                {task.priority === 'p4' ? '—' : cfg?.label ?? task.priority}
-              </button>
-              {/* Icons for extra features */}
-              {task.recurrence?.type !== 'none' && task.recurrence?.type && (
-                <span title={`Recorrente: ${task.recurrence.type}`} className="flex items-center gap-0.5 text-xs text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-full font-medium">
-                  🔁
-                </span>
-              )}
-              {isBlocked && <span title="Bloqueada por dependências"><Link2 size={10} className="text-amber-400" /></span>}
-              {task.estimatedMinutes && <span title={`Estimado: ${task.estimatedMinutes}min`}><Clock size={10} className="text-[var(--c-text3)]" /></span>}
-            </div>
-
-            {dueDateLabel && (
-              <div className={`flex items-center gap-1 mt-1.5 text-xs font-medium
-                ${isOverdue ? 'text-red-500' : isDueToday ? 'text-green-500' : 'text-[var(--c-text3)]'}`}>
-                <Calendar size={10} />
-                <span>{isOverdue ? '⚠ ' : ''}{dueDateLabel}</span>
-              </div>
-            )}
-
-            {taskLabels.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1.5">
-                {taskLabels.map(l => (
-                  <span key={l.id} className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                    style={{ backgroundColor: l.color + '22', color: l.color }}>
-                    {l.name}
+            {/* In compact mode: only show priority + recurrence + date inline */}
+            {compact ? (
+              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                {task.recurrence?.type !== 'none' && task.recurrence?.type && (
+                  <span title="Recorrente" className="text-xs text-indigo-400">🔁</span>
+                )}
+                {dueDateLabel && (
+                  <span className={`text-xs font-medium ${isOverdue ? 'text-red-500' : isDueToday ? 'text-green-500' : 'text-[var(--c-text3)]'}`}>
+                    {isOverdue ? '⚠ ' : ''}{dueDateLabel}
                   </span>
-                ))}
+                )}
+                <button onClick={cyclePriority}
+                  className={`text-xs font-bold ml-auto transition-all hover:opacity-75
+                    ${task.priority === 'p4' ? 'text-[var(--c-text3)]' : cfg?.color ?? ''}`}>
+                  {task.priority === 'p4' ? '—' : task.priority.toUpperCase()}
+                </button>
               </div>
-            )}
+            ) : (
+              <>
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  {project && (
+                    <div className="flex items-center gap-1">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${PROJECT_DOT[project.color] ?? 'bg-gray-500'}`} />
+                      <span className="text-xs text-[var(--c-text3)]">{project.name}</span>
+                    </div>
+                  )}
+                  <button onClick={cyclePriority} title="Clique para mudar prioridade"
+                    className={`text-xs font-bold px-1.5 py-0.5 rounded transition-all hover:opacity-75
+                      ${task.priority === 'p4' ? 'text-[var(--c-text3)] hover:text-[var(--c-text2)]' : cfg?.color ?? ''}`}>
+                    {task.priority === 'p4' ? '—' : cfg?.label ?? task.priority}
+                  </button>
+                  {task.recurrence?.type !== 'none' && task.recurrence?.type && (
+                    <span title={`Recorrente: ${task.recurrence.type}`} className="flex items-center gap-0.5 text-xs text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-full font-medium">
+                      🔁
+                    </span>
+                  )}
+                  {isBlocked && <span title="Bloqueada por dependências"><Link2 size={10} className="text-amber-400" /></span>}
+                  {task.estimatedMinutes && <span title={`Estimado: ${task.estimatedMinutes}min`}><Clock size={10} className="text-[var(--c-text3)]" /></span>}
+                </div>
 
-            {subtaskTotal > 0 && (
-              <div className="mt-2">
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-xs text-[var(--c-text3)]">{subtaskDone}/{subtaskTotal} subtarefas</span>
-                  <span className="text-xs text-[var(--c-text3)]">{Math.round(subtaskPct)}%</span>
-                </div>
-                <div className="w-full h-1 bg-[var(--c-border2)] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${subtaskPct === 100 ? 'bg-green-500' : 'bg-indigo-500'}`}
-                    style={{ width: `${subtaskPct}%` }}
-                  />
-                </div>
-              </div>
+                {dueDateLabel && (
+                  <div className={`flex items-center gap-1 mt-1.5 text-xs font-medium
+                    ${isOverdue ? 'text-red-500' : isDueToday ? 'text-green-500' : 'text-[var(--c-text3)]'}`}>
+                    <Calendar size={10} />
+                    <span>{isOverdue ? '⚠ ' : ''}{dueDateLabel}</span>
+                  </div>
+                )}
+
+                {taskLabels.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {taskLabels.map(l => (
+                      <span key={l.id} className="text-xs px-1.5 py-0.5 rounded-full font-medium"
+                        style={{ backgroundColor: l.color + '22', color: l.color }}>
+                        {l.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {subtaskTotal > 0 && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-xs text-[var(--c-text3)]">{subtaskDone}/{subtaskTotal} subtarefas</span>
+                      <span className="text-xs text-[var(--c-text3)]">{Math.round(subtaskPct)}%</span>
+                    </div>
+                    <div className="w-full h-1 bg-[var(--c-border2)] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${subtaskPct === 100 ? 'bg-green-500' : 'bg-indigo-500'}`}
+                        style={{ width: `${subtaskPct}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Color tag dot */}

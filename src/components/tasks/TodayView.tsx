@@ -1,20 +1,36 @@
+import { useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarCheck } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { useStore } from '../../store/useStore';
 import { TaskList } from './TaskList';
 
 export function TodayView() {
   const { tasks } = useStore();
   const todayStr = new Date().toISOString().split('T')[0];
+  const firedRef = useRef(false);
 
   const todayTasks = tasks
     .filter((t) => t.dueDate === todayStr)
     .sort((a, b) => {
-      // P1 first, then by time
       const pOrder = { p1: 0, p2: 1, p3: 2, p4: 3 };
       return pOrder[a.priority] - pOrder[b.priority];
     });
+
+  const total  = todayTasks.length;
+  const done   = todayTasks.filter(t => t.completed).length;
+  const allDone = total > 0 && done === total;
+
+  useEffect(() => {
+    if (allDone && !firedRef.current) {
+      firedRef.current = true;
+      confetti({ particleCount: 160, spread: 80, origin: { y: 0.55 }, colors: ['#6366f1','#22c55e','#f59e0b','#ec4899','#06b6d4'] });
+      setTimeout(() => confetti({ particleCount: 80, spread: 120, origin: { y: 0.6, x: 0.2 } }), 250);
+      setTimeout(() => confetti({ particleCount: 80, spread: 120, origin: { y: 0.6, x: 0.8 } }), 400);
+    }
+    if (!allDone) firedRef.current = false;
+  }, [allDone]);
 
   const todayLabel = format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR });
 
