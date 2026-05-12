@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import {
   Pin, Tag, Palette, Link2, Trash2, Plus, ExternalLink,
   Upload, Download, File, Image, FileText, Archive, Music, Film,
-  FolderOpen, X, Check,
+  X, Check,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import type { KnowledgeNote, NoteLink, MeetingFile } from '../../types';
