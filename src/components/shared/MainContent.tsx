@@ -10,6 +10,7 @@ import { KanbanGlobal } from '../kanban/KanbanGlobal';
 import { CalendarView } from '../views/CalendarView';
 import { FocusMode } from '../views/FocusMode';
 import { MeetingsView } from '../meetings/MeetingsView';
+import { NotesView } from '../notes/NotesView';
 import { MobileHeader } from './MobileHeader';
 import { MobileNav } from './MobileNav';
 
@@ -28,6 +29,7 @@ export function MainContent({ onSearchOpen }: Props) {
     if (activeView === 'calendar') return <CalendarView />;
     if (activeView === 'focus')    return <FocusMode />;
     if (activeView === 'meetings') return <MeetingsView />;
+    if (activeView === 'notes')    return <NotesView />;
 
     if (typeof activeView === 'object') {
       if (activeView.type === 'project') {

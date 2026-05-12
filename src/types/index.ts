@@ -125,9 +125,32 @@ export type NavView =
   | 'calendar'
   | 'focus'
   | 'meetings'
+  | 'notes'
   | { type: 'project'; id: string }
   | { type: 'label'; id: string }
   | { type: 'filter'; id: string };
+
+// ── Knowledge Base Notes ──────────────────────────────────────────────────────
+export interface NoteLink {
+  id: string;
+  label: string;
+  url: string;
+}
+
+export interface KnowledgeNote {
+  id: string;
+  title: string;
+  emoji: string;
+  color: string;        // hex accent
+  description: string;  // free text / markdown-like
+  links: NoteLink[];
+  files: MeetingFile[];
+  projectId: string | null;
+  pinned: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 // ── Meeting Notes ─────────────────────────────────────────────────────────────
 export type MeetingTemplate = 'blank' | 'client' | 'daily' | 'sprint' | 'retrospective';

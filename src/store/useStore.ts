@@ -8,6 +8,7 @@ import type {
   Task, Project, Section, Label, SavedFilter, NavView,
   ProjectColor, ProjectView, KanbanColumn, Comment, Attachment,
   MeetingNote, MeetingTemplate, MeetingActionItem, Recurrence,
+  KnowledgeNote,
 } from '../types';
 import { MEETING_TEMPLATES } from '../utils/meetingParser';
 
@@ -94,6 +95,14 @@ interface AppState {
   selectedTaskId: string | null;
   theme: 'dark' | 'light';
   focusActive: boolean;
+
+  // ── Knowledge Notes ────────────────────────────────────────────────────────
+  knowledgeNotes: KnowledgeNote[];
+  selectedNoteId: string | null;
+  setSelectedNote: (id: string | null) => void;
+  addKnowledgeNote: () => void;
+  updateKnowledgeNote: (id: string, changes: Partial<KnowledgeNote>) => void;
+  deleteKnowledgeNote: (id: string) => void;
 
   setActiveView: (view: NavView) => void;
   setSelectedTask: (id: string | null) => void;
@@ -620,6 +629,45 @@ export const useStore = create<AppState>()((set, get) => ({
   deleteFilter: (id) => {
     set((s) => ({ filters: s.filters.filter((f) => f.id !== id) }));
     filtersApi.delete(id).catch((err) => console.error('[deleteFilter]', err));
+  },
+
+  // ── Knowledge Notes (localStorage) ──────────────────────────────────────
+  knowledgeNotes: (() => {
+    try { return JSON.parse(localStorage.getItem('knowledge_notes') ?? '[]') as KnowledgeNote[]; }
+    catch { return []; }
+  })(),
+  selectedNoteId: null,
+  setSelectedNote: (id) => set({ selectedNoteId: id }),
+
+  addKnowledgeNote: () => {
+    const note: KnowledgeNote = {
+      id: uuid(), title: 'Nova Nota', emoji: '📝', color: '#6366f1',
+      description: '', links: [], files: [], projectId: null,
+      pinned: false, tags: [], createdAt: now(), updatedAt: now(),
+    };
+    set((s) => {
+      const next = [note, ...s.knowledgeNotes];
+      localStorage.setItem('knowledge_notes', JSON.stringify(next));
+      return { knowledgeNotes: next, selectedNoteId: note.id };
+    });
+  },
+
+  updateKnowledgeNote: (id, changes) => {
+    set((s) => {
+      const next = s.knowledgeNotes.map(n =>
+        n.id === id ? { ...n, ...changes, updatedAt: now() } : n
+      );
+      localStorage.setItem('knowledge_notes', JSON.stringify(next));
+      return { knowledgeNotes: next };
+    });
+  },
+
+  deleteKnowledgeNote: (id) => {
+    set((s) => {
+      const next = s.knowledgeNotes.filter(n => n.id !== id);
+      localStorage.setItem('knowledge_notes', JSON.stringify(next));
+      return { knowledgeNotes: next, selectedNoteId: s.selectedNoteId === id ? null : s.selectedNoteId };
+    });
   },
 
   // ── Meeting Notes (localStorage) ─────────────────────────────────────────

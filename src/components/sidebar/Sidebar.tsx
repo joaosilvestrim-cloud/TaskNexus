@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Inbox, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
   Plus, LayoutGrid,
-  Hash, Calendar, Sun, Moon, Target, X, FileText,
+  Hash, Calendar, Sun, Moon, Target, X, FileText, BookOpen,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import type { NavView } from '../../types';
@@ -105,6 +105,7 @@ export function Sidebar() {
           {navBtn('calendar', 'Calendário',      <Calendar size={14} />)}
           {navBtn('focus',    'Modo Foco',       <Target size={14} />)}
           {navBtn('meetings', 'Atas de Reunião', <FileText size={14} />)}
+          {navBtn('notes',    'Central de Notas', <BookOpen size={14} />)}
         </div>
       </div>
 
