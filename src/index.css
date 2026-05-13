@@ -3,6 +3,8 @@
 html {
   overflow-x: hidden;
   background-color: #070711;
+  scrollbar-color: #2d2d4e #070711;
+  scrollbar-width: thin;
 }
 
 html, body, #root {
@@ -13,6 +15,22 @@ html, body, #root {
 body {
   overflow-x: hidden;
   background-color: #070711;
+}
+
+/* Scrollbar escura para Chrome/Edge/Safari */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #070711;
+}
+::-webkit-scrollbar-thumb {
+  background: #2d2d4e;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3d3d6e;
 }
 
 /* ── Efeito pulsante para tarefas com vencimento hoje ────────────────────── */
