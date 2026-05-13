@@ -53,6 +53,16 @@ const tomorrowStr = addDays(startOfToday(), 1).toISOString().split('T')[0];
 
 type SwimlaneMode = 'none' | 'project' | 'priority';
 
+// Ordena tarefas por data: atrasadas → hoje → amanhã → futuras → sem data
+function sortByDate(a: { dueDate?: string | null }, b: { dueDate?: string | null }): number {
+  const da = a.dueDate ?? '';
+  const db = b.dueDate ?? '';
+  if (!da && !db) return 0;
+  if (!da) return 1;   // sem data vai pro fim
+  if (!db) return -1;
+  return da < db ? -1 : da > db ? 1 : 0;
+}
+
 export function KanbanGlobal() {
   const {
     tasks, projects, labels, updateTask, setSelectedTask, selectedTaskId, addTask,
@@ -142,7 +152,7 @@ export function KanbanGlobal() {
       if (task.status === status && insertBeforeId) {
         // Reorder within same column — use large offset to avoid unique constraint violations
         // then immediately fix to correct values
-        const colTasks = tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order);
+        const colTasks = tasks.filter(t => t.status === status).sort(sortByDate);
         const fromIdx = colTasks.findIndex(t => t.id === taskId);
         const toIdx   = colTasks.findIndex(t => t.id === insertBeforeId);
         if (fromIdx < 0 || toIdx < 0) return;
@@ -273,104 +283,158 @@ export function KanbanGlobal() {
     <div className="flex-1 overflow-hidden flex flex-col">
 
       {/* ── Stats bar ── */}
-      <div className="flex items-center gap-3 md:gap-6 px-3 md:px-6 py-2 border-b border-[var(--c-border)] bg-[var(--c-elevated)] overflow-x-auto">
-        <div className="flex items-center gap-1.5 text-xs text-[var(--c-text2)]">
-          <Activity size={12} className="text-indigo-400" />
-          <span><b className="text-[var(--c-text1)]">{activeTasks.length}</b> ativas</span>
+      <div className="flex items-center gap-2 md:gap-4 px-3 md:px-6 py-2 border-b border-[var(--c-border)] bg-[var(--c-elevated)] overflow-x-auto">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+          <Activity size={11} className="text-indigo-400" />
+          <span className="text-xs text-indigo-300 font-medium">{activeTasks.length} <span className="text-indigo-400/70 font-normal">ativas</span></span>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-[var(--c-text2)]">
-          <AlertCircle size={12} className={overdueTasks.length > 0 ? 'text-red-400' : 'text-[var(--c-text3)]'} />
-          <span className={overdueTasks.length > 0 ? 'text-red-400 font-semibold' : ''}>
-            {overdueTasks.length > 0
-              ? `${overdueTasks.length} atrasada${overdueTasks.length > 1 ? 's' : ''}`
-              : 'Nenhuma atrasada'}
+        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-colors ${
+          overdueTasks.length > 0
+            ? 'bg-red-500/10 border-red-500/20'
+            : 'bg-[var(--c-card)] border-[var(--c-border)]'
+        }`}>
+          <AlertCircle size={11} className={overdueTasks.length > 0 ? 'text-red-400' : 'text-[var(--c-text3)]'} />
+          <span className={`text-xs font-medium ${overdueTasks.length > 0 ? 'text-red-300' : 'text-[var(--c-text3)]'}`}>
+            {overdueTasks.length > 0 ? `${overdueTasks.length} atrasada${overdueTasks.length > 1 ? 's' : ''}` : 'Em dia'}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-[var(--c-text2)]">
-          <CheckCircle2 size={12} className="text-green-400" />
-          <span><b className="text-[var(--c-text1)]">{doneToday.length}</b> concluídas hoje</span>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-500/10 border border-green-500/20">
+          <CheckCircle2 size={11} className="text-green-400" />
+          <span className="text-xs text-green-300 font-medium">{doneToday.length} <span className="text-green-400/70 font-normal">hoje</span></span>
         </div>
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="flex flex-wrap items-center gap-2 px-3 md:px-6 py-2 md:py-2.5 border-b border-[var(--c-border)] overflow-x-auto">
+      <div className="flex flex-wrap items-center gap-2 px-3 md:px-6 py-2.5 border-b border-[var(--c-border)] bg-[var(--c-sidebar)]">
         {/* Busca */}
-        <div className="flex items-center gap-2 bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-lg px-3 py-1.5 min-w-48">
+        <div className="flex items-center gap-2 bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-xl px-3 py-1.5 min-w-44 focus-within:border-indigo-500/50 transition-colors">
           <Search size={12} className="text-[var(--c-text3)] shrink-0" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar..."
-            className="flex-1 text-xs bg-transparent text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none w-32"
+            placeholder="Buscar tarefas..."
+            className="flex-1 text-xs bg-transparent text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none w-28"
           />
-          {search && <button onClick={() => setSearch('')}><X size={11} className="text-[var(--c-text3)]" /></button>}
+          {search && <button onClick={() => setSearch('')}><X size={11} className="text-[var(--c-text3)] hover:text-[var(--c-text2)]" /></button>}
         </div>
 
-        {/* Filtro projeto */}
-        <div className="flex items-center gap-1 flex-wrap">
+        {/* Separator */}
+        <div className="w-px h-5 bg-[var(--c-border)]" />
+
+        {/* Filtro projeto — visual pills with color glow */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setFilterProject('')}
-            className={`text-xs px-2.5 py-1 rounded-lg border transition-all
-              ${!filterProject ? 'bg-indigo-600 text-white border-indigo-600' : 'border-[var(--c-border)] text-[var(--c-text3)] hover:border-[var(--c-border2)]'}`}
+            className={`text-xs px-3 py-1 rounded-full font-medium transition-all duration-200 ${
+              !filterProject
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
+                : 'bg-[var(--c-elevated)] text-[var(--c-text3)] border border-[var(--c-border)] hover:text-[var(--c-text2)] hover:border-[var(--c-border2)]'
+            }`}
           >
             Todos
           </button>
-          {projects.filter(p => !p.archived).map(p => (
-            <button key={p.id}
-              onClick={() => setFilterProject(filterProject === p.id ? '' : p.id)}
-              className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border transition-all
-                ${filterProject === p.id ? 'bg-[var(--c-active)] border-indigo-500 text-[var(--c-text1)]' : 'border-[var(--c-border)] text-[var(--c-text3)] hover:border-[var(--c-border2)]'}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${PROJECT_DOT[p.color] ?? 'bg-gray-500'}`} />
-              {p.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Filtro prioridade */}
-        <div className="flex items-center gap-1">
-          {(['p1', 'p2', 'p3', 'p4'] as Priority[]).map(p => {
-            const cfg = PRIORITY_CONFIG[p];
-            const active = filterPriority === p;
+          {projects.filter(p => !p.archived).map(p => {
+            const hex = PROJECT_HEX[p.color] ?? '#6b7280';
+            const isActive = filterProject === p.id;
             return (
-              <button key={p} onClick={() => setFilterPriority(active ? '' : p)}
-                className={`text-xs font-bold px-2 py-1 rounded-lg border transition-all
-                  ${active ? `${cfg.bg} ${cfg.color} border-transparent` : 'border-[var(--c-border)] text-[var(--c-text3)] hover:border-[var(--c-border2)]'}`}>
-                {p.toUpperCase()}
+              <button key={p.id}
+                onClick={() => setFilterProject(isActive ? '' : p.id)}
+                className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full font-medium transition-all duration-200 border"
+                style={isActive ? {
+                  backgroundColor: `${hex}20`,
+                  borderColor: `${hex}60`,
+                  color: hex,
+                  boxShadow: `0 0 10px ${hex}30`,
+                } : {
+                  backgroundColor: 'var(--c-elevated)',
+                  borderColor: 'var(--c-border)',
+                  color: 'var(--c-text3)',
+                }}
+              >
+                <span className="w-2 h-2 rounded-full shrink-0 transition-all" style={{ backgroundColor: isActive ? hex : 'var(--c-text3)' }} />
+                {p.name}
               </button>
             );
           })}
         </div>
 
-        {/* Compact toggle */}
-        <button
-          onClick={() => setCompact(v => !v)}
-          title={compact ? 'Modo normal' : 'Modo compacto'}
-          className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border transition-all ml-auto
-            ${compact ? 'bg-indigo-600 text-white border-indigo-600' : 'border-[var(--c-border)] text-[var(--c-text3)] hover:border-[var(--c-border2)]'}`}
-        >
-          <LayoutList size={12} /> {compact ? 'Compacto' : 'Normal'}
-        </button>
+        {/* Separator */}
+        <div className="w-px h-5 bg-[var(--c-border)]" />
 
-        {/* Swimlane toggle */}
+        {/* Filtro prioridade — badge style */}
         <div className="flex items-center gap-1">
-          <span className="text-xs text-[var(--c-text3)] mr-1">Raia:</span>
-          {(['none', 'project', 'priority'] as SwimlaneMode[]).map(mode => (
-            <button key={mode}
-              onClick={() => setSwimlane(mode)}
-              className={`text-xs px-2.5 py-1 rounded-lg border transition-all
-                ${swimlane === mode ? 'bg-indigo-600 text-white border-indigo-600' : 'border-[var(--c-border)] text-[var(--c-text3)] hover:border-[var(--c-border2)]'}`}>
-              {mode === 'none' ? 'Nenhum' : mode === 'project' ? 'Projeto' : 'Prioridade'}
-            </button>
-          ))}
+          {([
+            { key: 'p1' as Priority, label: 'Urgente', color: '#ef4444' },
+            { key: 'p2' as Priority, label: 'Alta',    color: '#f97316' },
+            { key: 'p3' as Priority, label: 'Média',   color: '#3b82f6' },
+            { key: 'p4' as Priority, label: 'Baixa',   color: '#6b7280' },
+          ]).map(({ key, label, color }) => {
+            const active = filterPriority === key;
+            return (
+              <button key={key}
+                onClick={() => setFilterPriority(active ? '' : key)}
+                title={label}
+                className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-bold border transition-all duration-200"
+                style={active ? {
+                  backgroundColor: `${color}20`,
+                  borderColor: `${color}60`,
+                  color,
+                  boxShadow: `0 0 8px ${color}25`,
+                } : {
+                  backgroundColor: 'var(--c-elevated)',
+                  borderColor: 'var(--c-border)',
+                  color: 'var(--c-text3)',
+                }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: active ? color : 'var(--c-text3)' }} />
+                {key.toUpperCase()}
+              </button>
+            );
+          })}
         </div>
 
-        {hasFilters && (
-          <button onClick={() => { setSearch(''); setFilterProject(''); setFilterPriority(''); }}
-            className="text-xs text-red-400 hover:text-red-500 flex items-center gap-1">
-            <X size={11} /> Limpar
+        {/* Right-side controls */}
+        <div className="flex items-center gap-1.5 ml-auto">
+          {/* Swimlane */}
+          <div className="flex items-center gap-0.5 bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-xl p-0.5">
+            {([
+              { mode: 'none' as SwimlaneMode, label: '—' },
+              { mode: 'project' as SwimlaneMode, label: 'Proj.' },
+              { mode: 'priority' as SwimlaneMode, label: 'Prior.' },
+            ]).map(({ mode, label }) => (
+              <button key={mode}
+                onClick={() => setSwimlane(mode)}
+                className={`text-xs px-2 py-0.5 rounded-lg font-medium transition-all ${
+                  swimlane === mode
+                    ? 'bg-indigo-600 text-white shadow'
+                    : 'text-[var(--c-text3)] hover:text-[var(--c-text2)]'
+                }`}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Compact toggle */}
+          <button
+            onClick={() => setCompact(v => !v)}
+            title={compact ? 'Modo normal' : 'Modo compacto'}
+            className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-xl border transition-all ${
+              compact
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow shadow-indigo-500/25'
+                : 'bg-[var(--c-elevated)] border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)]'
+            }`}
+          >
+            <LayoutList size={11} />
           </button>
-        )}
+
+          {/* Clear filters */}
+          {hasFilters && (
+            <button onClick={() => { setSearch(''); setFilterProject(''); setFilterPriority(''); }}
+              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all">
+              <X size={11} /> Limpar
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Board ── */}
@@ -394,7 +458,7 @@ export function KanbanGlobal() {
                 const groupTasks = filterTasksBySwimlane(group.key);
                 const colTasks = groupTasks
                   .filter(t => t.status === col.id)
-                  .sort((a, b) => a.order - b.order);
+                  .sort(sortByDate);
                 const overdueInCol = colTasks.filter(t => !t.completed && t.dueDate && t.dueDate < todayStr).length;
                 const isCollapsed = collapsed.has(col.id);
 

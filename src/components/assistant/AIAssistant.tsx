@@ -180,17 +180,19 @@ export function AIAssistant() {
         <button
           onClick={() => { setOpen(v => !v); setPulse(false); }}
           className={`relative w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-300 ${
-            open ? 'bg-[var(--c-card)] border border-[var(--c-border)] rotate-0' : 'bg-gradient-to-br from-indigo-600 to-purple-600 hover:scale-110'
+            open ? 'bg-[var(--c-card)] border border-[var(--c-border)]' : 'bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 hover:scale-110 hover:shadow-indigo-500/40'
           }`}
+          style={!open ? { boxShadow: '0 8px 32px rgba(99,102,241,0.45)' } : undefined}
         >
           {/* Pulse ring */}
-          {!open && (
-            <span className="absolute inset-0 rounded-2xl bg-indigo-500 opacity-30 animate-ping" />
+          {!open && pulse && (
+            <span className="absolute inset-0 rounded-2xl bg-indigo-400 opacity-25 animate-ping" />
           )}
-          {open
-            ? <ChevronDown size={22} className="text-[var(--c-text2)]" />
-            : <span className="text-2xl">🤖</span>
-          }
+          {open ? (
+            <ChevronDown size={20} className="text-[var(--c-text2)]" />
+          ) : (
+            <NexIcon />
+          )}
         </button>
       </div>
 
@@ -201,8 +203,8 @@ export function AIAssistant() {
 
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--c-border)] bg-gradient-to-r from-indigo-600/10 to-purple-600/10">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-lg shrink-0">
-              🤖
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 flex items-center justify-center shrink-0">
+              <NexIcon size={18} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-[var(--c-text1)]">Nex — Assistente IA</p>
@@ -223,8 +225,8 @@ export function AIAssistant() {
               <div key={msg.id} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                 {/* Avatar */}
                 {msg.role === 'assistant' && (
-                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-sm shrink-0 mt-0.5">
-                    🤖
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <NexIcon size={14} />
                   </div>
                 )}
 
@@ -323,6 +325,31 @@ function PriorityDot({ priority }: { priority: Priority }) {
     p1: 'bg-red-500', p2: 'bg-orange-400', p3: 'bg-blue-400', p4: 'bg-gray-400',
   };
   return <span className={`w-2 h-2 rounded-full shrink-0 ${colors[priority]}`} />;
+}
+
+function NexIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Neural spark — stylized N with sparkle */}
+      <circle cx="12" cy="12" r="4" fill="white" fillOpacity="0.9" />
+      <circle cx="12" cy="12" r="2" fill="white" />
+      {/* Orbiting dots */}
+      <circle cx="12" cy="4.5" r="1.5" fill="white" fillOpacity="0.8" />
+      <circle cx="19.5" cy="12" r="1.5" fill="white" fillOpacity="0.8" />
+      <circle cx="12" cy="19.5" r="1.5" fill="white" fillOpacity="0.8" />
+      <circle cx="4.5" cy="12" r="1.5" fill="white" fillOpacity="0.8" />
+      {/* Connecting lines */}
+      <line x1="12" y1="8" x2="12" y2="6" stroke="white" strokeOpacity="0.5" strokeWidth="1" />
+      <line x1="16" y1="12" x2="18" y2="12" stroke="white" strokeOpacity="0.5" strokeWidth="1" />
+      <line x1="12" y1="16" x2="12" y2="18" stroke="white" strokeOpacity="0.5" strokeWidth="1" />
+      <line x1="8" y1="12" x2="6" y2="12" stroke="white" strokeOpacity="0.5" strokeWidth="1" />
+      {/* Diagonal connectors */}
+      <line x1="14.8" y1="9.2" x2="16.5" y2="7.5" stroke="white" strokeOpacity="0.3" strokeWidth="0.8" />
+      <line x1="14.8" y1="14.8" x2="16.5" y2="16.5" stroke="white" strokeOpacity="0.3" strokeWidth="0.8" />
+      <line x1="9.2" y1="14.8" x2="7.5" y2="16.5" stroke="white" strokeOpacity="0.3" strokeWidth="0.8" />
+      <line x1="9.2" y1="9.2" x2="7.5" y2="7.5" stroke="white" strokeOpacity="0.3" strokeWidth="0.8" />
+    </svg>
+  );
 }
 
 function ThinkingDots() {
