@@ -63,6 +63,225 @@ function sortByDate(a: { dueDate?: string | null }, b: { dueDate?: string | null
   return da < db ? -1 : da > db ? 1 : 0;
 }
 
+/* ── Dropdown base ────────────────────────────────────────────────────────── */
+function DropdownMenu({ trigger, children, minWidth = 200 }: {
+  trigger: React.ReactNode;
+  children: React.ReactNode;
+  minWidth?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <div onClick={() => setOpen(v => !v)}>{trigger}</div>
+      {open && (
+        <div
+          className="absolute top-full left-0 mt-1.5 z-50 rounded-2xl border border-[var(--c-border)] bg-[var(--c-card)] shadow-2xl overflow-hidden"
+          style={{ minWidth, boxShadow: '0 20px 50px rgba(0,0,0,0.35)' }}
+          onClick={() => setOpen(false)}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Project dropdown ─────────────────────────────────────────────────────── */
+function ProjectDropdown({ projects, value, onChange }: {
+  projects: { id: string; name: string; color: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const active = projects.find(p => p.id === value);
+  const hex = active ? (PROJECT_HEX[active.color] ?? '#6b7280') : null;
+
+  const trigger = (
+    <button
+      className="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all"
+      style={active ? {
+        backgroundColor: `${hex}18`,
+        borderColor: `${hex}50`,
+        color: hex!,
+      } : {
+        backgroundColor: 'var(--c-elevated)',
+        borderColor: 'var(--c-border)',
+        color: 'var(--c-text2)',
+      }}
+    >
+      {active
+        ? <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: hex! }} />
+        : <span className="text-[var(--c-text3)]">●</span>}
+      <span>{active ? active.name : 'Projeto'}</span>
+      <ChevronDown size={11} className="opacity-50" />
+    </button>
+  );
+
+  return (
+    <DropdownMenu trigger={trigger} minWidth={200}>
+      <div className="p-2 space-y-0.5">
+        <p className="px-3 py-1 text-[10px] font-semibold text-[var(--c-text3)] uppercase tracking-wider">Filtrar por projeto</p>
+        <button
+          onClick={() => onChange('')}
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all ${
+            !value ? 'bg-indigo-600 text-white' : 'text-[var(--c-text2)] hover:bg-[var(--c-hover)]'
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-[var(--c-text3)]" />
+          Todos os projetos
+        </button>
+        {projects.map(p => {
+          const h = PROJECT_HEX[p.color] ?? '#6b7280';
+          const isActive = value === p.id;
+          return (
+            <button key={p.id}
+              onClick={() => onChange(isActive ? '' : p.id)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all"
+              style={isActive ? {
+                backgroundColor: `${h}18`,
+                color: h,
+              } : { color: 'var(--c-text2)' }}
+              onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--c-hover)'; }}
+              onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
+            >
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: h }} />
+              <span className="flex-1 text-left">{p.name}</span>
+              {isActive && <Check size={13} />}
+            </button>
+          );
+        })}
+      </div>
+    </DropdownMenu>
+  );
+}
+
+/* ── Priority dropdown ────────────────────────────────────────────────────── */
+const PRIORITY_OPTS = [
+  { key: 'p1' as Priority, label: 'Urgente', color: '#ef4444', emoji: '🔴' },
+  { key: 'p2' as Priority, label: 'Alta',    color: '#f97316', emoji: '🟠' },
+  { key: 'p3' as Priority, label: 'Média',   color: '#3b82f6', emoji: '🔵' },
+  { key: 'p4' as Priority, label: 'Baixa',   color: '#6b7280', emoji: '⚪' },
+];
+
+function PriorityDropdown({ value, onChange }: { value: Priority | ''; onChange: (v: Priority | '') => void }) {
+  const active = PRIORITY_OPTS.find(p => p.key === value);
+
+  const trigger = (
+    <button
+      className="flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all"
+      style={active ? {
+        backgroundColor: `${active.color}18`,
+        borderColor: `${active.color}50`,
+        color: active.color,
+      } : {
+        backgroundColor: 'var(--c-elevated)',
+        borderColor: 'var(--c-border)',
+        color: 'var(--c-text2)',
+      }}
+    >
+      {active
+        ? <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: active.color }} />
+        : <span className="text-[var(--c-text3)] text-[10px]">▲</span>}
+      <span>{active ? active.label : 'Prioridade'}</span>
+      <ChevronDown size={11} className="opacity-50" />
+    </button>
+  );
+
+  return (
+    <DropdownMenu trigger={trigger} minWidth={180}>
+      <div className="p-2 space-y-0.5">
+        <p className="px-3 py-1 text-[10px] font-semibold text-[var(--c-text3)] uppercase tracking-wider">Filtrar por prioridade</p>
+        <button
+          onClick={() => onChange('')}
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all ${
+            !value ? 'bg-indigo-600 text-white' : 'text-[var(--c-text2)] hover:bg-[var(--c-hover)]'
+          }`}
+        >
+          <span className="text-base">🔘</span> Todas
+        </button>
+        {PRIORITY_OPTS.map(p => {
+          const isActive = value === p.key;
+          return (
+            <button key={p.key}
+              onClick={() => onChange(isActive ? '' : p.key)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all"
+              style={isActive ? { backgroundColor: `${p.color}18`, color: p.color } : { color: 'var(--c-text2)' }}
+              onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--c-hover)'; }}
+              onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
+            >
+              <span className="text-sm">{p.emoji}</span>
+              <span className="flex-1 text-left">{p.label}</span>
+              <span className="text-[10px] font-bold opacity-50">{p.key.toUpperCase()}</span>
+              {isActive && <Check size={13} />}
+            </button>
+          );
+        })}
+      </div>
+    </DropdownMenu>
+  );
+}
+
+/* ── Swimlane dropdown ────────────────────────────────────────────────────── */
+const SWIMLANE_OPTS: { mode: SwimlaneMode; label: string; desc: string; icon: string }[] = [
+  { mode: 'none',     label: 'Sem raia',  desc: 'Visão padrão do board',       icon: '▦' },
+  { mode: 'project',  label: 'Projeto',   desc: 'Agrupar por projeto',          icon: '📁' },
+  { mode: 'priority', label: 'Prioridade',desc: 'Agrupar por nível de urgência', icon: '⚡' },
+];
+
+function SwimlaneDropdown({ value, onChange }: { value: SwimlaneMode; onChange: (v: SwimlaneMode) => void }) {
+  const active = SWIMLANE_OPTS.find(s => s.mode === value)!;
+
+  const trigger = (
+    <button
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${
+        value !== 'none'
+          ? 'bg-violet-500/15 border-violet-500/40 text-violet-400'
+          : 'bg-[var(--c-elevated)] border-[var(--c-border)] text-[var(--c-text2)]'
+      }`}
+    >
+      <span className="text-sm">{active.icon}</span>
+      <span>{active.label}</span>
+      <ChevronDown size={11} className="opacity-50" />
+    </button>
+  );
+
+  return (
+    <DropdownMenu trigger={trigger} minWidth={210}>
+      <div className="p-2 space-y-0.5">
+        <p className="px-3 py-1 text-[10px] font-semibold text-[var(--c-text3)] uppercase tracking-wider">Agrupar por raia</p>
+        {SWIMLANE_OPTS.map(s => {
+          const isActive = value === s.mode;
+          return (
+            <button key={s.mode}
+              onClick={() => onChange(s.mode)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all text-left"
+              style={isActive ? { backgroundColor: 'rgba(139,92,246,0.15)', color: '#a78bfa' } : { color: 'var(--c-text2)' }}
+              onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--c-hover)'; }}
+              onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
+            >
+              <span className="text-base w-6 text-center">{s.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium leading-none mb-0.5">{s.label}</p>
+                <p className="text-[11px] text-[var(--c-text3)] leading-none">{s.desc}</p>
+              </div>
+              {isActive && <Check size={13} />}
+            </button>
+          );
+        })}
+      </div>
+    </DropdownMenu>
+  );
+}
+
 export function KanbanGlobal() {
   const {
     tasks, projects, labels, updateTask, setSelectedTask, selectedTaskId, addTask,
@@ -305,133 +524,55 @@ export function KanbanGlobal() {
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="flex flex-wrap items-center gap-2 px-3 md:px-6 py-2.5 border-b border-[var(--c-border)] bg-[var(--c-sidebar)]">
+      <div className="flex items-center gap-2 px-3 md:px-6 py-2.5 border-b border-[var(--c-border)] bg-[var(--c-sidebar)]">
         {/* Busca */}
-        <div className="flex items-center gap-2 bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-xl px-3 py-1.5 min-w-44 focus-within:border-indigo-500/50 transition-colors">
+        <div className="flex items-center gap-2 bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-xl px-3 py-1.5 w-48 focus-within:border-indigo-500/50 transition-colors">
           <Search size={12} className="text-[var(--c-text3)] shrink-0" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar tarefas..."
-            className="flex-1 text-xs bg-transparent text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none w-28"
+            placeholder="Buscar..."
+            className="flex-1 text-xs bg-transparent text-[var(--c-text1)] placeholder-[var(--c-text3)] focus:outline-none min-w-0"
           />
           {search && <button onClick={() => setSearch('')}><X size={11} className="text-[var(--c-text3)] hover:text-[var(--c-text2)]" /></button>}
         </div>
 
-        {/* Separator */}
         <div className="w-px h-5 bg-[var(--c-border)]" />
 
-        {/* Filtro projeto — visual pills with color glow */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            onClick={() => setFilterProject('')}
-            className={`text-xs px-3 py-1 rounded-full font-medium transition-all duration-200 ${
-              !filterProject
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                : 'bg-[var(--c-elevated)] text-[var(--c-text3)] border border-[var(--c-border)] hover:text-[var(--c-text2)] hover:border-[var(--c-border2)]'
-            }`}
-          >
-            Todos
-          </button>
-          {projects.filter(p => !p.archived).map(p => {
-            const hex = PROJECT_HEX[p.color] ?? '#6b7280';
-            const isActive = filterProject === p.id;
-            return (
-              <button key={p.id}
-                onClick={() => setFilterProject(isActive ? '' : p.id)}
-                className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full font-medium transition-all duration-200 border"
-                style={isActive ? {
-                  backgroundColor: `${hex}20`,
-                  borderColor: `${hex}60`,
-                  color: hex,
-                  boxShadow: `0 0 10px ${hex}30`,
-                } : {
-                  backgroundColor: 'var(--c-elevated)',
-                  borderColor: 'var(--c-border)',
-                  color: 'var(--c-text3)',
-                }}
-              >
-                <span className="w-2 h-2 rounded-full shrink-0 transition-all" style={{ backgroundColor: isActive ? hex : 'var(--c-text3)' }} />
-                {p.name}
-              </button>
-            );
-          })}
-        </div>
+        {/* Dropdown Projeto */}
+        <ProjectDropdown
+          projects={projects.filter(p => !p.archived)}
+          value={filterProject}
+          onChange={setFilterProject}
+        />
 
-        {/* Separator */}
-        <div className="w-px h-5 bg-[var(--c-border)]" />
+        {/* Dropdown Prioridade */}
+        <PriorityDropdown value={filterPriority} onChange={setFilterPriority} />
 
-        {/* Filtro prioridade — badge style */}
-        <div className="flex items-center gap-1">
-          {([
-            { key: 'p1' as Priority, label: 'Urgente', color: '#ef4444' },
-            { key: 'p2' as Priority, label: 'Alta',    color: '#f97316' },
-            { key: 'p3' as Priority, label: 'Média',   color: '#3b82f6' },
-            { key: 'p4' as Priority, label: 'Baixa',   color: '#6b7280' },
-          ]).map(({ key, label, color }) => {
-            const active = filterPriority === key;
-            return (
-              <button key={key}
-                onClick={() => setFilterPriority(active ? '' : key)}
-                title={label}
-                className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-bold border transition-all duration-200"
-                style={active ? {
-                  backgroundColor: `${color}20`,
-                  borderColor: `${color}60`,
-                  color,
-                  boxShadow: `0 0 8px ${color}25`,
-                } : {
-                  backgroundColor: 'var(--c-elevated)',
-                  borderColor: 'var(--c-border)',
-                  color: 'var(--c-text3)',
-                }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: active ? color : 'var(--c-text3)' }} />
-                {key.toUpperCase()}
-              </button>
-            );
-          })}
-        </div>
+        {/* Dropdown Raia */}
+        <SwimlaneDropdown value={swimlane} onChange={setSwimlane} />
 
         {/* Right-side controls */}
         <div className="flex items-center gap-1.5 ml-auto">
-          {/* Swimlane */}
-          <div className="flex items-center gap-0.5 bg-[var(--c-elevated)] border border-[var(--c-border)] rounded-xl p-0.5">
-            {([
-              { mode: 'none' as SwimlaneMode, label: '—' },
-              { mode: 'project' as SwimlaneMode, label: 'Proj.' },
-              { mode: 'priority' as SwimlaneMode, label: 'Prior.' },
-            ]).map(({ mode, label }) => (
-              <button key={mode}
-                onClick={() => setSwimlane(mode)}
-                className={`text-xs px-2 py-0.5 rounded-lg font-medium transition-all ${
-                  swimlane === mode
-                    ? 'bg-indigo-600 text-white shadow'
-                    : 'text-[var(--c-text3)] hover:text-[var(--c-text2)]'
-                }`}>
-                {label}
-              </button>
-            ))}
-          </div>
-
           {/* Compact toggle */}
           <button
             onClick={() => setCompact(v => !v)}
             title={compact ? 'Modo normal' : 'Modo compacto'}
-            className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-xl border transition-all ${
+            className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-xl border transition-all ${
               compact
                 ? 'bg-indigo-600 text-white border-indigo-600 shadow shadow-indigo-500/25'
-                : 'bg-[var(--c-elevated)] border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)]'
+                : 'bg-[var(--c-elevated)] border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:border-[var(--c-border2)]'
             }`}
           >
-            <LayoutList size={11} />
+            <LayoutList size={12} />
+            <span className="hidden sm:inline">{compact ? 'Compacto' : 'Normal'}</span>
           </button>
 
           {/* Clear filters */}
           {hasFilters && (
-            <button onClick={() => { setSearch(''); setFilterProject(''); setFilterPriority(''); }}
-              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all">
-              <X size={11} /> Limpar
+            <button onClick={() => { setSearch(''); setFilterProject(''); setFilterPriority(''); setSwimlane('none'); }}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all">
+              <X size={12} /> Limpar
             </button>
           )}
         </div>
