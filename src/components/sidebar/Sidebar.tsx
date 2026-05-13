@@ -26,7 +26,7 @@ function isActive(active: NavView, target: NavView): boolean {
 export function Sidebar() {
   const {
     activeView, setActiveView, projects, labels, filters, tasks,
-    sidebarOpen, setSidebarOpen, currentUser,
+    sidebarOpen, setSidebarOpen, currentUser, theme,
   } = useStore();
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [labelsOpen, setLabelsOpen]     = useState(false);
@@ -75,7 +75,12 @@ export function Sidebar() {
 
       {/* Header */}
       <div className="flex items-center gap-2 px-4 mb-4">
-        <img src="/logo.png" alt="TaskNexus" className="h-8 w-auto object-contain" />
+        <img
+  src="/TaskNexus_sem_fundo.png"
+  alt="TaskNexus"
+  className="h-10 w-auto object-contain"
+  style={{ filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none' }}
+/>
         <div className="flex-1" />
         {/* Close button — mobile only */}
         <button onClick={() => setSidebarOpen(false)}

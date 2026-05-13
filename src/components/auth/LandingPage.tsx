@@ -45,7 +45,7 @@ function AuthModal({ defaultMode, onClose }: { defaultMode: 'login' | 'signup'; 
         <div className="relative px-8 pt-7 pb-5 border-b border-white/8">
           <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-all"><X size={18} /></button>
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="TaskNexus" className="h-9 w-auto object-contain" />
+            <img src="/TaskNexus_sem_fundo.png" alt="TaskNexus" className="h-10 w-auto object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
             <div>
               <p className="text-white/40 text-xs">{mode === 'signup' ? 'Crie sua conta gratuita' : 'Bem-vindo de volta'}</p>
             </div>
@@ -124,7 +124,7 @@ function AppMockup() {
           {/* Sidebar */}
           <div className="w-28 shrink-0 p-2 border-r border-white/8 flex flex-col gap-0.5" style={{ background:'#0b0b18' }}>
             <div className="flex items-center gap-1.5 px-1.5 py-1 mb-1">
-              <img src="/logo.png" alt="TaskNexus" className="h-4 w-auto object-contain" />
+              <img src="/TaskNexus_sem_fundo.png" alt="TaskNexus" className="h-5 w-auto object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
             {[['Inbox',''],['Kanban','active'],['Hoje',''],['Em breve','']].map(([label, cls]) => (
               <div key={label} className={`flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[9px] ${cls ? 'bg-indigo-600/20 text-indigo-300' : 'text-white/25'}`}>
@@ -222,7 +222,7 @@ export function LandingPage() {
       <nav className="sticky top-0 z-40 border-b border-white/5" style={{ background:'rgba(7,7,17,0.92)', backdropFilter:'blur(16px)' }}>
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 24px' }} className="flex items-center justify-between h-14">
           <div className="flex items-center">
-            <img src="/logo.png" alt="TaskNexus" className="h-9 w-auto object-contain" />
+            <img src="/TaskNexus_sem_fundo.png" alt="TaskNexus" className="h-10 w-auto object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#funcionalidades" className="text-sm text-white/50 hover:text-white transition-colors">Funcionalidades</a>
@@ -401,7 +401,7 @@ export function LandingPage() {
       <footer style={{ borderTop:'1px solid rgba(255,255,255,0.06)', padding:'28px 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="TaskNexus" className="h-6 w-auto object-contain opacity-50" />
+            <img src="/TaskNexus_sem_fundo.png" alt="TaskNexus" className="h-7 w-auto object-contain opacity-40" style={{ filter: 'brightness(0) invert(1)' }} />
             <span style={{ color:'rgba(255,255,255,0.25)', fontSize:12 }}>© {new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-1" style={{ color:'rgba(255,255,255,0.2)', fontSize:12 }}>
