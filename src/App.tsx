@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { LayoutGrid, Loader2 } from 'lucide-react';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { MainContent } from './components/shared/MainContent';
@@ -11,6 +11,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useEmailNotifications } from './hooks/useEmailNotifications';
 import { useStore } from './store/useStore';
 import { AIAssistant } from './components/assistant/AIAssistant';
+import { PWAInstallBanner } from './components/shared/PWAInstallBanner';
 
 function AppInner() {
   const { tasks, focusActive } = useStore();
@@ -71,6 +72,7 @@ function AppInner() {
       <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} />
       {focusActive && <PomodoroTimer />}
       <AIAssistant />
+      <PWAInstallBanner />
     </>
   );
 }

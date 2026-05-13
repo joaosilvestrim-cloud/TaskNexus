@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#6366f1"/>
+  <!-- Grid dots (kanban feel) -->
+  <rect x="120" y="140" width="80" height="100" rx="14" fill="white" opacity="0.95"/>
+  <rect x="216" y="140" width="80" height="140" rx="14" fill="white" opacity="0.75"/>
+  <rect x="312" y="140" width="80" height="80"  rx="14" fill="white" opacity="0.55"/>
+  <!-- Bottom bar accent -->
+  <rect x="120" y="300" width="272" height="12" rx="6" fill="white" opacity="0.3"/>
+  <!-- Spark / AI dot -->
+  <circle cx="388" cy="340" r="28" fill="#a5b4fc"/>
+  <text x="388" y="350" text-anchor="middle" font-size="28" fill="#312e81">✦</text>
+</svg>
