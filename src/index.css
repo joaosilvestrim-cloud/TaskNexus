@@ -1,12 +1,17 @@
 @import "tailwindcss";
 
+html {
+  overflow-x: hidden;
+  background-color: #070711;
+}
+
 html, body, #root {
   min-height: 100%;
   width: 100%;
 }
 
-/* Landing page: garante fundo escuro antes do React montar */
 body {
+  overflow-x: hidden;
   background-color: #070711;
 }
 

@@ -332,16 +332,16 @@ export function LandingPage() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="pt-28 pb-16 px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="pt-28 pb-20 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 items-center">
 
-          {/* Left: copy */}
-          <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-semibold mb-6">
-              <Sparkles size={12} /> Gerencie projetos com IA integrada
+          {/* Left: copy — fixed width so mockup always shows */}
+          <div className="flex-1 min-w-0 lg:max-w-[520px]">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-semibold mb-6">
+              <Sparkles size={11} /> Gerencie projetos com IA integrada
             </div>
 
-            <h1 className="text-5xl lg:text-6xl font-black leading-[1.08] mb-6 tracking-tight">
+            <h1 className="text-4xl lg:text-5xl font-black leading-[1.1] mb-5 tracking-tight">
               Seu time no{' '}
               <span style={{ background: 'linear-gradient(135deg, #6366f1, #a78bfa, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 próximo nível
@@ -349,30 +349,30 @@ export function LandingPage() {
               {' '}com IA e Kanban
             </h1>
 
-            <p className="text-lg text-white/50 leading-relaxed mb-8 max-w-lg">
-              TaskNexus reúne Kanban inteligente, atas de reunião com IA, central de notas e modo foco.
+            <p className="text-base text-white/50 leading-relaxed mb-7">
+              Kanban inteligente, atas com IA, central de notas e modo foco.
               Tudo em um só lugar, seguro e acessível de qualquer dispositivo.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-8">
+            <div className="flex flex-wrap gap-3 mb-6">
               <button onClick={() => setModal('signup')}
-                className="flex items-center justify-center gap-2 px-8 py-4 text-white font-bold rounded-2xl text-base transition-all hover:scale-105 hover:shadow-2xl"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 12px 32px rgba(99,102,241,0.3)' }}>
-                Criar conta grátis <ArrowRight size={18} />
+                className="flex items-center gap-2 px-7 py-3.5 text-white font-bold rounded-xl text-sm transition-all hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 10px 28px rgba(99,102,241,0.3)' }}>
+                Criar conta grátis <ArrowRight size={16} />
               </button>
               <button onClick={() => setModal('login')}
-                className="flex items-center justify-center gap-2 px-8 py-4 border border-white/15 hover:border-white/30 text-white/70 hover:text-white font-semibold rounded-2xl text-base transition-all">
+                className="flex items-center gap-2 px-7 py-3.5 border border-white/15 hover:border-white/30 text-white/70 hover:text-white font-semibold rounded-xl text-sm transition-all">
                 Já tenho conta
               </button>
             </div>
 
-            <p className="text-white/20 text-xs mb-8">Sem cartão de crédito · Plano Free para sempre · PWA instalável</p>
+            <p className="text-white/20 text-xs mb-6">Sem cartão de crédito · Free para sempre · PWA instalável</p>
 
             {/* Social proof */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="flex -space-x-2">
                 {['6366f1','8b5cf6','ec4899','10b981','f59e0b'].map((c, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-[#070711] flex items-center justify-center text-white text-xs font-bold"
+                  <div key={i} className="w-7 h-7 rounded-full border-2 border-[#070711] flex items-center justify-center text-white text-xs font-bold"
                     style={{ background: `#${c}` }}>
                     {String.fromCharCode(65 + i)}
                   </div>
@@ -380,15 +380,15 @@ export function LandingPage() {
               </div>
               <div>
                 <div className="flex gap-0.5 mb-0.5">
-                  {[1,2,3,4,5].map(i => <Star key={i} size={11} className="text-yellow-400 fill-yellow-400" />)}
+                  {[1,2,3,4,5].map(i => <Star key={i} size={10} className="text-yellow-400 fill-yellow-400" />)}
                 </div>
                 <p className="text-white/30 text-xs">Adorado por times de produto</p>
               </div>
             </div>
           </div>
 
-          {/* Right: App mockup */}
-          <div className="hidden lg:block">
+          {/* Right: App mockup — always visible on lg+ */}
+          <div className="flex-1 min-w-0 w-full lg:block">
             <AppMockup />
           </div>
         </div>
