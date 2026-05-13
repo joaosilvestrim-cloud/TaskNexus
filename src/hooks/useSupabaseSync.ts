@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { projectsApi, sectionsApi, labelsApi, tasksApi, filtersApi } from '../lib/api';
 import { useStore, initUserStorage } from '../store/useStore';
 
+
 export function useSupabaseSync() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +20,13 @@ export function useSupabaseSync() {
     setError(null);
     try {
       // Init user-scoped localStorage BEFORE reading any data
-      if (uid) initUserStorage(uid);
+      if (uid) {
+        initUserStorage(uid);
+        // Store user in global store so components can read it
+        const session = await supabase.auth.getSession();
+        const u = session.data.session?.user;
+        if (u) useStore.getState().setCurrentUser({ id: u.id, email: u.email ?? '' });
+      }
 
       const [projects, sections, labels, tasks, filters] = await Promise.all([
         projectsApi.list(),
@@ -64,6 +71,7 @@ export function useSupabaseSync() {
         useStore.setState({
           tasks: [], projects: [], sections: [], labels: [], filters: [],
           meetingNotes: [], knowledgeNotes: [], kanbanColumns: [],
+          currentUser: null,
         });
         setLoading(false);
       } else if (event === 'TOKEN_REFRESHED' && u) {

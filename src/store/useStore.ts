@@ -118,6 +118,8 @@ interface AppState {
   projects: Project[];
   sections: Section[];
   kanbanColumns: KanbanColumn[];
+  currentUser: { id: string; email: string } | null;
+  setCurrentUser: (u: { id: string; email: string } | null) => void;
   addKanbanColumn: (label: string) => void;
   updateKanbanColumn: (id: string, changes: Partial<KanbanColumn>) => void;
   deleteKanbanColumn: (id: string) => void;
@@ -235,6 +237,8 @@ export const useStore = create<AppState>()((set, get) => ({
   focusActive: localStorage.getItem('focus_active') === 'true',
   sidebarOpen: false,
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  currentUser: null,
+  setCurrentUser: (u) => set({ currentUser: u }),
 
   addKanbanColumn: (label) => {
     const cols = get().kanbanColumns;

@@ -2,12 +2,13 @@ import { useState } from 'react';
 import {
   Inbox, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
   Plus, LayoutGrid,
-  Hash, Calendar, Sun, Moon, Target, X, FileText, BookOpen, Download, Smartphone,
+  Hash, Calendar, Target, X, FileText, BookOpen, Download, Smartphone,
 } from 'lucide-react';
 import { usePWAInstall } from '../shared/PWAInstallBanner';
 import { useStore } from '../../store/useStore';
 import type { NavView } from '../../types';
 import { AddProjectModal } from '../projects/AddProjectModal';
+import { UserMenu } from '../shared/UserMenu';
 
 const PROJECT_DOT: Record<string, string> = {
   red:'bg-red-500', orange:'bg-orange-500', yellow:'bg-yellow-400',
@@ -26,7 +27,7 @@ function isActive(active: NavView, target: NavView): boolean {
 export function Sidebar() {
   const {
     activeView, setActiveView, projects, labels, filters, tasks,
-    theme, toggleTheme, sidebarOpen, setSidebarOpen,
+    theme, toggleTheme, sidebarOpen, setSidebarOpen, currentUser,
   } = useStore();
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [labelsOpen, setLabelsOpen]     = useState(false);
@@ -189,7 +190,7 @@ export function Sidebar() {
       <div className="flex-1" />
 
       {/* ── Bottom actions ── */}
-      <div className="px-3 pb-2 mt-2 border-t border-[var(--c-border)] pt-3 space-y-1">
+      <div className="px-2 pb-2 mt-2 border-t border-[var(--c-border)] pt-2 space-y-1">
         {/* Install PWA */}
         {!installed && (canInstall || isIOS) && (
           <button
@@ -202,7 +203,6 @@ export function Sidebar() {
             <Download size={14} /> Instalar app
           </button>
         )}
-        {/* Always-visible install guide button */}
         {!installed && !canInstall && !isIOS && (
           <button
             onClick={() => setShowInstallGuide(true)}
@@ -212,13 +212,8 @@ export function Sidebar() {
           </button>
         )}
 
-        <button onClick={toggleTheme}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[var(--c-text2)] hover:bg-[var(--c-hover)] hover:text-[var(--c-text1)] transition-all">
-          {theme === 'dark'
-            ? <><Sun size={14} className="text-yellow-400" /><span>Tema Claro</span></>
-            : <><Moon size={14} className="text-indigo-400" /><span>Tema Escuro</span></>
-          }
-        </button>
+        {/* User menu with settings + logout */}
+        {currentUser && <UserMenu userEmail={currentUser.email} />}
       </div>
 
       {/* Install guide modal */}
