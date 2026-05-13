@@ -27,7 +27,7 @@ function isActive(active: NavView, target: NavView): boolean {
 export function Sidebar() {
   const {
     activeView, setActiveView, projects, labels, filters, tasks,
-    theme, toggleTheme, sidebarOpen, setSidebarOpen, currentUser,
+    sidebarOpen, setSidebarOpen, currentUser,
   } = useStore();
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [labelsOpen, setLabelsOpen]     = useState(false);

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   LogOut, Settings, User, Moon, Sun, Bell, Keyboard,
-  Shield, ChevronRight, X, Check, Palette, Clock,
+  Shield, ChevronRight, X, Check, Palette,
   Download, Trash2,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
