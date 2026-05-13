@@ -26,7 +26,7 @@ function isActive(active: NavView, target: NavView): boolean {
 export function Sidebar() {
   const {
     activeView, setActiveView, projects, labels, filters, tasks,
-    sidebarOpen, setSidebarOpen, currentUser, theme,
+    sidebarOpen, setSidebarOpen, currentUser,
   } = useStore();
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [labelsOpen, setLabelsOpen]     = useState(false);
@@ -74,14 +74,22 @@ export function Sidebar() {
     <aside className="flex flex-col w-64 bg-[var(--c-sidebar)] border-r border-[var(--c-border)] py-3 overflow-y-auto h-full">
 
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 mb-4">
-        <img
-  src="/TaskNexus_sem_fundo.png"
-  alt="TaskNexus"
-  className="h-10 w-auto object-contain"
-  style={{ filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none' }}
-/>
-        <div className="flex-1" />
+      <div className="flex items-center gap-2.5 px-4 mb-4">
+        {/* Brand icon */}
+        <div className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7)' }}>
+          <svg width="18" height="18" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <text x="50" y="72" fontFamily="system-ui,-apple-system,sans-serif" fontSize="68" fontWeight="900" textAnchor="middle" fill="white" fillOpacity="0.95">N</text>
+            <circle cx="72" cy="30" r="7" fill="white" fillOpacity="0.5"/>
+            <circle cx="72" cy="30" r="3.5" fill="white" fillOpacity="0.9"/>
+          </svg>
+        </div>
+        {/* Brand name */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold tracking-tight" style={{ color: 'var(--c-text1)' }}>
+            Task<span style={{ background: 'linear-gradient(90deg,#6366f1,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Nexus</span>
+          </p>
+        </div>
         {/* Close button — mobile only */}
         <button onClick={() => setSidebarOpen(false)}
           className="md:hidden p-1 rounded-lg text-[var(--c-text3)] hover:bg-[var(--c-hover)]">

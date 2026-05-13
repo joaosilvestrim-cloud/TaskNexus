@@ -8,6 +8,24 @@ import {
 import { supabase } from '../../lib/supabase';
 
 /* ── Auth Modal ──────────────────────────────────────────────────────────── */
+/* ── Brand Icon ──────────────────────────────────────────────────────────── */
+function BrandIcon({ size = 32, opacity = 1 }: { size?: number; opacity?: number }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: size * 0.22,
+      background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0, opacity,
+    }}>
+      <svg width={size * 0.52} height={size * 0.52} viewBox="0 0 26 26" fill="none">
+        <text x="13" y="20" fontFamily="system-ui,-apple-system,sans-serif" fontSize="22" fontWeight="900" textAnchor="middle" fill="white" fillOpacity="0.95">N</text>
+        <circle cx="21" cy="6" r="3.5" fill="white" fillOpacity="0.45"/>
+        <circle cx="21" cy="6" r="1.8" fill="white" fillOpacity="0.9"/>
+      </svg>
+    </div>
+  );
+}
+
 function AuthModal({ defaultMode, onClose }: { defaultMode: 'login' | 'signup'; onClose: () => void }) {
   const [mode, setMode] = useState<'login' | 'signup'>(defaultMode);
   const [email, setEmail] = useState('');
@@ -45,8 +63,9 @@ function AuthModal({ defaultMode, onClose }: { defaultMode: 'login' | 'signup'; 
         <div className="relative px-8 pt-7 pb-5 border-b border-white/8">
           <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-all"><X size={18} /></button>
           <div className="flex items-center gap-3">
-            <img src="/TaskNexus_sem_fundo.png" alt="TaskNexus" className="h-10 w-auto object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+            <BrandIcon size={38} />
             <div>
+              <p className="font-bold text-white text-base">Task<span style={{ background: 'linear-gradient(90deg,#818cf8,#c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Nexus</span></p>
               <p className="text-white/40 text-xs">{mode === 'signup' ? 'Crie sua conta gratuita' : 'Bem-vindo de volta'}</p>
             </div>
           </div>
@@ -124,7 +143,8 @@ function AppMockup() {
           {/* Sidebar */}
           <div className="w-28 shrink-0 p-2 border-r border-white/8 flex flex-col gap-0.5" style={{ background:'#0b0b18' }}>
             <div className="flex items-center gap-1.5 px-1.5 py-1 mb-1">
-              <img src="/TaskNexus_sem_fundo.png" alt="TaskNexus" className="h-5 w-auto object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+              <BrandIcon size={18} />
+              <span className="text-white text-[9px] font-bold">TaskNexus</span>
             </div>
             {[['Inbox',''],['Kanban','active'],['Hoje',''],['Em breve','']].map(([label, cls]) => (
               <div key={label} className={`flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[9px] ${cls ? 'bg-indigo-600/20 text-indigo-300' : 'text-white/25'}`}>
@@ -221,8 +241,9 @@ export function LandingPage() {
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-40 border-b border-white/5" style={{ background:'rgba(7,7,17,0.92)', backdropFilter:'blur(16px)' }}>
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 24px' }} className="flex items-center justify-between h-14">
-          <div className="flex items-center">
-            <img src="/TaskNexus_sem_fundo.png" alt="TaskNexus" className="h-10 w-auto object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+          <div className="flex items-center gap-2.5">
+            <BrandIcon size={34} />
+            <span className="font-bold text-white text-lg">Task<span style={{ background:'linear-gradient(90deg,#818cf8,#c084fc)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Nexus</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#funcionalidades" className="text-sm text-white/50 hover:text-white transition-colors">Funcionalidades</a>
@@ -401,8 +422,8 @@ export function LandingPage() {
       <footer style={{ borderTop:'1px solid rgba(255,255,255,0.06)', padding:'28px 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
           <div className="flex items-center gap-2">
-            <img src="/TaskNexus_sem_fundo.png" alt="TaskNexus" className="h-7 w-auto object-contain opacity-40" style={{ filter: 'brightness(0) invert(1)' }} />
-            <span style={{ color:'rgba(255,255,255,0.25)', fontSize:12 }}>© {new Date().getFullYear()}</span>
+            <BrandIcon size={22} opacity={0.5} />
+            <span style={{ color:'rgba(255,255,255,0.25)', fontSize:12 }}>TaskNexus © {new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-1" style={{ color:'rgba(255,255,255,0.2)', fontSize:12 }}>
             <Users size={10}/> Feito para times produtivos
