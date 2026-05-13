@@ -10,6 +10,7 @@ import { useSupabaseSync } from './hooks/useSupabaseSync';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useEmailNotifications } from './hooks/useEmailNotifications';
 import { useStore } from './store/useStore';
+import { AIAssistant } from './components/assistant/AIAssistant';
 
 function AppInner() {
   const { tasks, focusActive } = useStore();
@@ -69,6 +70,7 @@ function AppInner() {
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
       <QuickAddModal open={quickAddOpen} onClose={() => setQuickAddOpen(false)} />
       {focusActive && <PomodoroTimer />}
+      <AIAssistant />
     </>
   );
 }

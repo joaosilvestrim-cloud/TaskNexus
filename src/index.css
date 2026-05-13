@@ -9,6 +9,15 @@
   animation: today-pulse 2s ease-in-out infinite;
 }
 
+@keyframes bounce-in {
+  0%   { opacity: 0; transform: scale(0.8) translateY(8px); }
+  60%  { transform: scale(1.05) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-bounce-in {
+  animation: bounce-in 0.4s ease-out forwards;
+}
+
 @keyframes overdue-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6), 0 0 0 0 rgba(239, 68, 68, 0.3); }
   50%       { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35), 0 0 10px 4px rgba(239, 68, 68, 0.15); }
