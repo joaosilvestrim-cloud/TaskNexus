@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { LayoutGrid, Loader2 } from 'lucide-react';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { MainContent } from './components/shared/MainContent';
