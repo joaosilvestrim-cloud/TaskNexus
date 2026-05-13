@@ -310,7 +310,7 @@ export function LandingPage() {
 
           {/* Nav links — desktop */}
           <div className="hidden md:flex items-center gap-8">
-            {['Funcionalidades', 'Planos', 'FAQ'].map(l => (
+            {['Funcionalidades', 'FAQ'].map(l => (
               <a key={l} href={`#${l.toLowerCase()}`}
                 className="text-sm text-white/50 hover:text-white transition-colors">{l}</a>
             ))}
@@ -474,74 +474,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── Pricing ── */}
-      <section id="planos" className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-indigo-400 text-xs font-bold mb-3 uppercase tracking-widest">Planos</p>
-            <h2 className="text-3xl md:text-4xl font-black mb-4">Simples e transparente</h2>
-            <p className="text-white/40 text-sm">Comece grátis, evolua quando precisar.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            {[
-              {
-                plan: 'Free', price: 'Grátis', period: 'Para sempre',
-                highlight: false, cta: 'Começar grátis',
-                features: ['Kanban ilimitado','Até 3 projetos','Atas (3/mês)','10 notas','IA (10 msgs/dia)','PWA instalável'],
-              },
-              {
-                plan: 'Pro', price: 'R$29', period: '/mês por usuário',
-                highlight: true, cta: 'Começar Pro',
-                features: ['Tudo do Free','Projetos ilimitados','Atas ilimitadas + arquivos','Notas ilimitadas','IA ilimitada (Nex)','Modo Foco avançado','Suporte prioritário'],
-              },
-              {
-                plan: 'Business', price: 'R$79', period: '/mês até 10 usuários',
-                highlight: false, cta: 'Falar com vendas',
-                features: ['Tudo do Pro','Multi-usuário (10)','Dashboard de equipe','Relatórios avançados','Onboarding dedicado','SLA de suporte'],
-              },
-            ].map(p => (
-              <div key={p.plan} className={`relative p-8 rounded-2xl border transition-all
-                ${p.highlight
-                  ? 'border-indigo-500/40 shadow-2xl'
-                  : 'border-white/10 hover:border-white/20'}`}
-                style={{ background: p.highlight ? 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08))' : 'rgba(255,255,255,0.025)' }}>
-                {p.highlight && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-1 text-xs font-bold text-white rounded-full flex items-center gap-1"
-                      style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-                      <Sparkles size={10} /> MAIS POPULAR
-                    </span>
-                  </div>
-                )}
-                <p className={`text-xs font-bold uppercase tracking-widest mb-4 ${p.highlight ? 'text-indigo-400' : 'text-white/40'}`}>{p.plan}</p>
-                <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-black text-white">{p.price}</span>
-                </div>
-                <p className="text-white/30 text-xs mb-6">{p.period}</p>
-                <ul className="space-y-2.5 mb-8">
-                  {p.features.map(f => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm text-white/60">
-                      <Check size={13} className={p.highlight ? 'text-indigo-400' : 'text-green-400'} /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => p.cta === 'Falar com vendas'
-                    ? window.open('mailto:joao.silvestrim@gmail.com?subject=TaskNexus Business')
-                    : setModal('signup')}
-                  className={`w-full py-3 rounded-xl font-bold text-sm transition-all
-                    ${p.highlight
-                      ? 'text-white hover:opacity-90'
-                      : 'border border-white/15 hover:border-white/30 text-white hover:bg-white/5'}`}
-                  style={p.highlight ? { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 8px 24px rgba(99,102,241,0.3)' } : {}}>
-                  {p.cta}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── Why section ── */}
       <section className="py-20 px-6 border-t border-white/5" style={{ background: 'rgba(99,102,241,0.04)' }}>
