@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import {
   Inbox, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
-  Plus, LayoutGrid,
-  Hash, Calendar, Target, X, FileText, BookOpen, Download, Smartphone,
+  Plus, LayoutGrid, Hash, Calendar, Target, X, FileText, BookOpen, Download, Smartphone,
 } from 'lucide-react';
 import { usePWAInstall } from '../shared/PWAInstallBanner';
 import { useStore } from '../../store/useStore';
@@ -75,13 +74,9 @@ export function Sidebar() {
     <aside className="flex flex-col w-64 bg-[var(--c-sidebar)] border-r border-[var(--c-border)] py-3 overflow-y-auto h-full">
 
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 mb-4">
-        <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center shrink-0">
-          <LayoutGrid size={13} className="text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[var(--c-text1)] truncate">TaskNexus</p>
-        </div>
+      <div className="flex items-center gap-2 px-4 mb-4">
+        <img src="/logo.png" alt="TaskNexus" className="h-8 w-auto object-contain" />
+        <div className="flex-1" />
         {/* Close button — mobile only */}
         <button onClick={() => setSidebarOpen(false)}
           className="md:hidden p-1 rounded-lg text-[var(--c-text3)] hover:bg-[var(--c-hover)]">

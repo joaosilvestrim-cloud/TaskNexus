@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  LayoutGrid, Loader2, Eye, EyeOff, X,
+  Loader2, Eye, EyeOff, X,
   Brain, FileText, BookOpen, Target, Bell, Kanban,
   Check, Star, ArrowRight, Sparkles, ChevronDown,
   Shield, Zap, Palette, Users,
@@ -45,11 +45,8 @@ function AuthModal({ defaultMode, onClose }: { defaultMode: 'login' | 'signup'; 
         <div className="relative px-8 pt-7 pb-5 border-b border-white/8">
           <button onClick={onClose} className="absolute top-4 right-4 p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-all"><X size={18} /></button>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
-              <LayoutGrid size={16} className="text-white" />
-            </div>
+            <img src="/logo.png" alt="TaskNexus" className="h-9 w-auto object-contain" />
             <div>
-              <p className="font-bold text-white">TaskNexus</p>
               <p className="text-white/40 text-xs">{mode === 'signup' ? 'Crie sua conta gratuita' : 'Bem-vindo de volta'}</p>
             </div>
           </div>
@@ -117,7 +114,7 @@ function AppMockup() {
           </div>
           <div className="flex-1 flex justify-center">
             <span className="flex items-center gap-1 text-white/20 text-[10px] px-2.5 py-0.5 rounded bg-white/5">
-              <LayoutGrid size={8}/> tasknexus.vercel.app
+              tasknexus.vercel.app
             </span>
           </div>
         </div>
@@ -127,8 +124,7 @@ function AppMockup() {
           {/* Sidebar */}
           <div className="w-28 shrink-0 p-2 border-r border-white/8 flex flex-col gap-0.5" style={{ background:'#0b0b18' }}>
             <div className="flex items-center gap-1.5 px-1.5 py-1 mb-1">
-              <div className="w-4 h-4 rounded bg-indigo-600 flex items-center justify-center shrink-0"><LayoutGrid size={8} className="text-white"/></div>
-              <span className="text-white text-[9px] font-bold">TaskNexus</span>
+              <img src="/logo.png" alt="TaskNexus" className="h-4 w-auto object-contain" />
             </div>
             {[['Inbox',''],['Kanban','active'],['Hoje',''],['Em breve','']].map(([label, cls]) => (
               <div key={label} className={`flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[9px] ${cls ? 'bg-indigo-600/20 text-indigo-300' : 'text-white/25'}`}>
@@ -225,11 +221,8 @@ export function LandingPage() {
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-40 border-b border-white/5" style={{ background:'rgba(7,7,17,0.92)', backdropFilter:'blur(16px)' }}>
         <div style={{ maxWidth:1200, margin:'0 auto', padding:'0 24px' }} className="flex items-center justify-between h-14">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background:'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
-              <LayoutGrid size={15} className="text-white"/>
-            </div>
-            <span className="font-bold text-white text-base">TaskNexus</span>
+          <div className="flex items-center">
+            <img src="/logo.png" alt="TaskNexus" className="h-9 w-auto object-contain" />
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#funcionalidades" className="text-sm text-white/50 hover:text-white transition-colors">Funcionalidades</a>
@@ -408,10 +401,8 @@ export function LandingPage() {
       <footer style={{ borderTop:'1px solid rgba(255,255,255,0.06)', padding:'28px 24px' }}>
         <div style={{ maxWidth:1200, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background:'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
-              <LayoutGrid size={11} className="text-white"/>
-            </div>
-            <span style={{ color:'rgba(255,255,255,0.25)', fontSize:12 }}>TaskNexus © {new Date().getFullYear()}</span>
+            <img src="/logo.png" alt="TaskNexus" className="h-6 w-auto object-contain opacity-50" />
+            <span style={{ color:'rgba(255,255,255,0.25)', fontSize:12 }}>© {new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-1" style={{ color:'rgba(255,255,255,0.2)', fontSize:12 }}>
             <Users size={10}/> Feito para times produtivos
