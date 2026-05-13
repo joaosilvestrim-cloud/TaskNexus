@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Send, Sparkles, Bot, Loader2, CheckCircle2, ChevronDown } from 'lucide-react';
+import { X, Send, Sparkles, Loader2, CheckCircle2, ChevronDown } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import type { Priority } from '../../types';
 
