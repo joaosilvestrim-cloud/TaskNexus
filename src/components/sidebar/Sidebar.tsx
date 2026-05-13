@@ -2,8 +2,9 @@ import { useState } from 'react';
 import {
   Inbox, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
   Plus, LayoutGrid,
-  Hash, Calendar, Sun, Moon, Target, X, FileText, BookOpen,
+  Hash, Calendar, Sun, Moon, Target, X, FileText, BookOpen, Download, Smartphone,
 } from 'lucide-react';
+import { usePWAInstall } from '../shared/PWAInstallBanner';
 import { useStore } from '../../store/useStore';
 import type { NavView } from '../../types';
 import { AddProjectModal } from '../projects/AddProjectModal';
@@ -31,6 +32,8 @@ export function Sidebar() {
   const [labelsOpen, setLabelsOpen]     = useState(false);
   const [filtersOpen, setFiltersOpen]   = useState(false);
   const [addProjectOpen, setAddProjectOpen] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const { canInstall, isIOS, installed, install } = usePWAInstall();
 
   const inboxCount = tasks.filter(t => !t.completed && t.projectId === null).length;
   const todayStr   = new Date().toISOString().split('T')[0];
@@ -185,8 +188,30 @@ export function Sidebar() {
 
       <div className="flex-1" />
 
-      {/* ── Theme Toggle ── */}
-      <div className="px-3 pb-2 mt-2 border-t border-[var(--c-border)] pt-3">
+      {/* ── Bottom actions ── */}
+      <div className="px-3 pb-2 mt-2 border-t border-[var(--c-border)] pt-3 space-y-1">
+        {/* Install PWA */}
+        {!installed && (canInstall || isIOS) && (
+          <button
+            onClick={async () => {
+              if (canInstall) { await install(); }
+              else { setShowInstallGuide(true); }
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-indigo-400 hover:bg-indigo-500/10 transition-all"
+          >
+            <Download size={14} /> Instalar app
+          </button>
+        )}
+        {/* Always-visible install guide button */}
+        {!installed && !canInstall && !isIOS && (
+          <button
+            onClick={() => setShowInstallGuide(true)}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[var(--c-text3)] hover:bg-[var(--c-hover)] hover:text-[var(--c-text2)] transition-all"
+          >
+            <Smartphone size={14} /> Instalar no celular
+          </button>
+        )}
+
         <button onClick={toggleTheme}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-[var(--c-text2)] hover:bg-[var(--c-hover)] hover:text-[var(--c-text1)] transition-all">
           {theme === 'dark'
@@ -195,6 +220,56 @@ export function Sidebar() {
           }
         </button>
       </div>
+
+      {/* Install guide modal */}
+      {showInstallGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowInstallGuide(false)}>
+          <div className="w-full max-w-sm bg-[var(--c-card)] rounded-2xl p-6 space-y-4 shadow-2xl"
+            onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <img src="/icons/icon-192.png" alt="TaskNexus" className="w-12 h-12 rounded-2xl" />
+              <div>
+                <p className="font-bold text-[var(--c-text1)]">Instalar TaskNexus</p>
+                <p className="text-xs text-[var(--c-text3)]">Como app no seu dispositivo</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-sm text-[var(--c-text2)]">
+              <div className="p-3 rounded-xl bg-[var(--c-elevated)] space-y-1">
+                <p className="font-semibold text-[var(--c-text1)] flex items-center gap-1.5">
+                  🤖 Android (Chrome)
+                </p>
+                <p>1. Toque no menu <strong>⋮</strong> (canto superior direito)</p>
+                <p>2. Selecione <strong>"Adicionar à tela inicial"</strong></p>
+                <p>3. Confirme e pronto!</p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[var(--c-elevated)] space-y-1">
+                <p className="font-semibold text-[var(--c-text1)] flex items-center gap-1.5">
+                  🍎 iPhone / iPad (Safari)
+                </p>
+                <p>1. Toque no botão <strong>Compartilhar □↑</strong> (barra inferior)</p>
+                <p>2. Role e toque em <strong>"Adicionar à Tela de Início"</strong></p>
+                <p>3. Confirme o nome e toque em <strong>Adicionar</strong></p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[var(--c-elevated)] space-y-1">
+                <p className="font-semibold text-[var(--c-text1)] flex items-center gap-1.5">
+                  💻 Desktop (Chrome / Edge)
+                </p>
+                <p>Procure o ícone <strong>⊕</strong> na barra de endereço e clique em <strong>"Instalar"</strong></p>
+              </div>
+            </div>
+
+            <button onClick={() => setShowInstallGuide(false)}
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-colors">
+              Entendi!
+            </button>
+          </div>
+        </div>
+      )}
+
     </aside>
   );
 
