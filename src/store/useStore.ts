@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import {
   tasksApi, subtasksApi, projectsApi, sectionsApi,
-  labelsApi, filtersApi, setTaskExtras,
+  labelsApi, filtersApi, setTaskExtras, setApiUserId,
 } from '../lib/api';
 import type {
   Task, Project, Section, Label, SavedFilter, NavView,
@@ -60,12 +60,19 @@ const DEFAULT_COLUMNS: KanbanColumn[] = [
   { id: 'done',        label: 'Concluído',    color: 'text-green-400',  accent: 'bg-green-500',  order: 3, isDefault: true, wipLimit: null, bgColor: null },
 ];
 
+// ── User-scoped localStorage helpers ─────────────────────────────────────────
+// All per-user keys are prefixed with the userId so different users on the
+// same device never see each other's data (complements RLS on the DB side).
+
+let _uid = '';
+export function setStorageUserId(uid: string) { _uid = uid; }
+function key(name: string) { return _uid ? `${_uid}_${name}` : name; }
+
 function loadColumns(): KanbanColumn[] {
   try {
-    const raw = localStorage.getItem('kanban_columns');
+    const raw = localStorage.getItem(key('kanban_columns'));
     if (raw) {
       const cols = JSON.parse(raw) as KanbanColumn[];
-      // Ensure new fields exist
       return cols.map(c => ({
         ...c,
         wipLimit: c.wipLimit ?? null,
@@ -77,7 +84,33 @@ function loadColumns(): KanbanColumn[] {
 }
 
 function saveColumns(cols: KanbanColumn[]) {
-  localStorage.setItem('kanban_columns', JSON.stringify(cols));
+  localStorage.setItem(key('kanban_columns'), JSON.stringify(cols));
+}
+
+/** Called once after the user signs in. Re-loads all localStorage-backed state
+ *  using the correct user-scoped keys. */
+export function initUserStorage(uid: string) {
+  setStorageUserId(uid);
+  setApiUserId(uid);
+
+  // Columns
+  const kanbanColumns = loadColumns();
+
+  // Meeting notes
+  let meetingNotes: MeetingNote[] = [];
+  try {
+    const raw = JSON.parse(localStorage.getItem(key('meeting_notes')) ?? '[]') as MeetingNote[];
+    meetingNotes = raw.map(m => ({ ...m, linkedTaskId: m.linkedTaskId ?? null, files: m.files ?? [] }));
+  } catch { /* ignore */ }
+
+  // Knowledge notes
+  let knowledgeNotes: KnowledgeNote[] = [];
+  try {
+    knowledgeNotes = JSON.parse(localStorage.getItem(key('knowledge_notes')) ?? '[]') as KnowledgeNote[];
+  } catch { /* ignore */ }
+
+  // Focus / theme are global preferences (not user-specific data), keep as-is
+  useStore.setState({ kanbanColumns, meetingNotes, knowledgeNotes });
 }
 
 interface AppState {
@@ -633,7 +666,7 @@ export const useStore = create<AppState>()((set, get) => ({
 
   // ── Knowledge Notes (localStorage) ──────────────────────────────────────
   knowledgeNotes: (() => {
-    try { return JSON.parse(localStorage.getItem('knowledge_notes') ?? '[]') as KnowledgeNote[]; }
+    try { return JSON.parse(localStorage.getItem(key('knowledge_notes')) ?? '[]') as KnowledgeNote[]; }
     catch { return []; }
   })(),
   selectedNoteId: null,
@@ -647,7 +680,7 @@ export const useStore = create<AppState>()((set, get) => ({
     };
     set((s) => {
       const next = [note, ...s.knowledgeNotes];
-      localStorage.setItem('knowledge_notes', JSON.stringify(next));
+      localStorage.setItem(key('knowledge_notes'), JSON.stringify(next));
       return { knowledgeNotes: next, selectedNoteId: note.id };
     });
   },
@@ -657,7 +690,7 @@ export const useStore = create<AppState>()((set, get) => ({
       const next = s.knowledgeNotes.map(n =>
         n.id === id ? { ...n, ...changes, updatedAt: now() } : n
       );
-      localStorage.setItem('knowledge_notes', JSON.stringify(next));
+      localStorage.setItem(key('knowledge_notes'), JSON.stringify(next));
       return { knowledgeNotes: next };
     });
   },
@@ -665,7 +698,7 @@ export const useStore = create<AppState>()((set, get) => ({
   deleteKnowledgeNote: (id) => {
     set((s) => {
       const next = s.knowledgeNotes.filter(n => n.id !== id);
-      localStorage.setItem('knowledge_notes', JSON.stringify(next));
+      localStorage.setItem(key('knowledge_notes'), JSON.stringify(next));
       return { knowledgeNotes: next, selectedNoteId: s.selectedNoteId === id ? null : s.selectedNoteId };
     });
   },
@@ -673,8 +706,7 @@ export const useStore = create<AppState>()((set, get) => ({
   // ── Meeting Notes (localStorage) ─────────────────────────────────────────
   meetingNotes: (() => {
     try {
-      const raw = JSON.parse(localStorage.getItem('meeting_notes') ?? '[]') as MeetingNote[];
-      // Migrate old notes that don't have linkedTaskId
+      const raw = JSON.parse(localStorage.getItem(key('meeting_notes')) ?? '[]') as MeetingNote[];
       return raw.map(m => ({ ...m, linkedTaskId: m.linkedTaskId ?? null, files: m.files ?? [] }));
     }
     catch { return []; }
@@ -712,14 +744,14 @@ export const useStore = create<AppState>()((set, get) => ({
       const updated: MeetingNote = { ...note, linkedTaskId: task.id };
       set((s) => {
         const next = [updated, ...s.meetingNotes.filter(m => m.id !== note.id)];
-        localStorage.setItem('meeting_notes', JSON.stringify(next));
+        localStorage.setItem(key('meeting_notes'), JSON.stringify(next));
         return { meetingNotes: next };
       });
     });
 
     set((s) => {
       const next = [note, ...s.meetingNotes];
-      localStorage.setItem('meeting_notes', JSON.stringify(next));
+      localStorage.setItem(key('meeting_notes'), JSON.stringify(next));
       return { meetingNotes: next, selectedMeetingId: note.id };
     });
     return note;
@@ -731,7 +763,7 @@ export const useStore = create<AppState>()((set, get) => ({
       const next = s.meetingNotes.map((m) =>
         m.id === id ? { ...m, ...changes, updatedAt: now() } : m
       );
-      localStorage.setItem('meeting_notes', JSON.stringify(next));
+      localStorage.setItem(key('meeting_notes'), JSON.stringify(next));
 
       // Sync Kanban card if title/date/project changed
       const updated = next.find(m => m.id === id);
@@ -755,7 +787,7 @@ export const useStore = create<AppState>()((set, get) => ({
     set((s) => {
       const meeting = s.meetingNotes.find(m => m.id === id);
       const next = s.meetingNotes.filter((m) => m.id !== id);
-      localStorage.setItem('meeting_notes', JSON.stringify(next));
+      localStorage.setItem(key('meeting_notes'), JSON.stringify(next));
       // Also delete linked Kanban card
       if (meeting?.linkedTaskId) {
         get().deleteTask(meeting.linkedTaskId);

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { LayoutGrid, Loader2 } from 'lucide-react';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { MainContent } from './components/shared/MainContent';
-import { AuthScreen } from './components/auth/AuthScreen';
+import { LandingPage } from './components/auth/LandingPage';
 import { GlobalSearch } from './components/shared/GlobalSearch';
 import { PomodoroTimer } from './components/shared/PomodoroTimer';
 import { QuickAddModal } from './components/shared/QuickAddModal';
@@ -99,7 +99,7 @@ export default function App() {
     );
   }
 
-  if (!user) return <AuthScreen />;
+  if (!user) return <LandingPage />;
 
   return <AppInner />;
 }

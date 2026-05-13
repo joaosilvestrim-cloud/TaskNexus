@@ -277,16 +277,20 @@ type TaskExtras = {
   attachments: import('../types').Attachment[];
 };
 
+let _apiUid = '';
+export function setApiUserId(uid: string) { _apiUid = uid; }
+function extrasKey() { return _apiUid ? `${_apiUid}_task_extras` : 'task_extras'; }
+
 function loadTaskExtras(): Record<string, TaskExtras> {
   try {
-    const raw = localStorage.getItem('task_extras');
+    const raw = localStorage.getItem(extrasKey());
     if (raw) return JSON.parse(raw) as Record<string, TaskExtras>;
   } catch { /* ignore */ }
   return {};
 }
 
 function saveTaskExtras(map: Record<string, TaskExtras>) {
-  localStorage.setItem('task_extras', JSON.stringify(map));
+  localStorage.setItem(extrasKey(), JSON.stringify(map));
 }
 
 export function getTaskExtras(taskId: string): TaskExtras {
