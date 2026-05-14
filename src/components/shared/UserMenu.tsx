@@ -90,7 +90,8 @@ function SettingsModal({ onClose, userEmail }: { onClose: () => void; userEmail:
                 <div>
                   <h3 className="text-sm font-semibold text-[var(--c-text1)] mb-4">Informações da conta</h3>
                   <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--c-elevated)] border border-[var(--c-border)]">
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-bold shrink-0"
+                      style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7)', boxShadow: '0 0 20px rgba(99,102,241,0.4)' }}>
                       {userEmail.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -283,7 +284,8 @@ export function UserMenu({ userEmail }: { userEmail: string }) {
         <button onClick={() => setOpen(v => !v)}
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[var(--c-hover)] transition-all group">
           {/* Avatar */}
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+            style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 0 10px rgba(99,102,241,0.3)' }}>
             {initials}
           </div>
           <div className="flex-1 text-left min-w-0">
@@ -298,7 +300,8 @@ export function UserMenu({ userEmail }: { userEmail: string }) {
           <div className="absolute bottom-full left-0 right-0 mb-1 bg-[var(--c-card)] border border-[var(--c-border)] rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in">
             {/* User info header */}
             <div className="px-4 py-3 border-b border-[var(--c-border)] flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
+                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 0 14px rgba(99,102,241,0.35)' }}>
                 {initials}
               </div>
               <div className="min-w-0">

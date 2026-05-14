@@ -269,28 +269,45 @@ Descrição atual: "${current}"`;
   };
 
   return (
-    <aside className={`${mobileOverlay ? 'w-full' : 'w-[22rem]'} bg-[var(--c-card)] border-l border-[var(--c-border)] flex flex-col overflow-y-auto shrink-0`}>
+    <aside className={`${mobileOverlay ? 'w-full' : 'w-[22rem]'} flex flex-col overflow-y-auto shrink-0 animate-slide-in`}
+      style={{ background: 'var(--c-card)', borderLeft: '1px solid var(--c-border)' }}>
 
       {/* ── Header ── */}
-      <div className={`${mobileOverlay ? 'hidden' : 'flex'} items-center justify-between px-5 py-3.5 border-b border-[var(--c-border)] sticky top-0 bg-[var(--c-card)] z-10`}>
-        <span className="text-xs font-semibold text-[var(--c-text3)] uppercase tracking-wider">Detalhes</span>
-        <div className="flex items-center gap-1">
+      <div className={`${mobileOverlay ? 'hidden' : 'flex'} items-center justify-between px-4 py-3 sticky top-0 z-10`}
+        style={{
+          background: 'var(--c-card)',
+          borderBottom: '1px solid var(--c-border)',
+        }}>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-4 rounded-full" style={{ background: 'linear-gradient(180deg,#6366f1,#a855f7)' }} />
+          <span className="text-[11px] font-bold text-[var(--c-text3)] uppercase tracking-widest">Detalhes</span>
+        </div>
+        <div className="flex items-center gap-0.5">
           <Tooltip text="Duplicar tarefa" side="bottom">
             <button
               onClick={() => duplicateTask(task.id)}
-              className="p-1.5 rounded-lg hover:bg-[var(--c-hover)] text-[var(--c-text3)] hover:text-[var(--c-text2)] transition-colors">
+              className="p-1.5 rounded-xl text-[var(--c-text3)] hover:text-[var(--c-text2)] transition-all duration-150"
+              style={{ ':hover': { background: 'var(--c-hover)' } } as React.CSSProperties}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--c-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.background = '')}>
               <Copy size={14} />
             </button>
           </Tooltip>
           <Tooltip text="Excluir tarefa permanentemente" side="bottom">
-            <button onClick={() => { deleteTask(task.id); setSelectedTask(null); }}
-              className="p-1.5 rounded-lg hover:bg-red-50/10 text-[var(--c-text3)] hover:text-red-400 transition-colors">
+            <button
+              onClick={() => { deleteTask(task.id); setSelectedTask(null); }}
+              className="p-1.5 rounded-xl text-[var(--c-text3)] hover:text-red-400 transition-all duration-150"
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+              onMouseLeave={e => (e.currentTarget.style.background = '')}>
               <Trash2 size={14} />
             </button>
           </Tooltip>
           <Tooltip text="Fechar painel de detalhes" side="bottom" shortcut="Esc">
-            <button onClick={() => setSelectedTask(null)}
-              className="p-1.5 rounded-lg hover:bg-[var(--c-hover)] text-[var(--c-text3)]">
+            <button
+              onClick={() => setSelectedTask(null)}
+              className="p-1.5 rounded-xl text-[var(--c-text3)] transition-all duration-150"
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--c-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.background = '')}>
               <X size={14} />
             </button>
           </Tooltip>
@@ -299,11 +316,15 @@ Descrição atual: "${current}"`;
 
       {/* ── Save bar ── */}
       {(isDirty || nexusSaved) && (
-        <div className={`flex items-center justify-between px-4 py-2.5 border-b transition-all ${
+        <div className={`flex items-center justify-between px-4 py-2.5 transition-all animate-fade-in ${
           nexusSaved
-            ? 'bg-green-500/10 border-green-500/20'
-            : 'bg-indigo-500/8 border-indigo-500/20'
-        }`}>
+            ? 'border-green-500/20'
+            : 'border-indigo-500/20'
+        }`}
+          style={{
+            borderBottom: `1px solid ${nexusSaved ? 'rgba(34,197,94,0.2)' : 'rgba(99,102,241,0.2)'}`,
+            background: nexusSaved ? 'rgba(34,197,94,0.08)' : 'rgba(99,102,241,0.08)',
+          }}>
           <span className={`text-xs font-medium flex items-center gap-1.5 ${nexusSaved ? 'text-green-400' : 'text-indigo-400'}`}>
             {nexusSaved
               ? <><Check size={12} /> Salvo com sucesso!</>
@@ -329,7 +350,7 @@ Descrição atual: "${current}"`;
         </div>
       )}
 
-      <div className="flex-1 px-5 py-5 space-y-6">
+      <div className="flex-1 px-4 py-5 space-y-5">
 
         {/* ── Título ── */}
         <div className="flex items-start gap-3">

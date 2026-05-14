@@ -44,7 +44,7 @@ export function MainContent({ onSearchOpen }: Props) {
   };
 
   return (
-    <div className="flex flex-1 overflow-hidden bg-[var(--c-bg)] flex-col">
+    <div className="flex flex-1 overflow-hidden flex-col" style={{ background: 'var(--c-bg)' }}>
       {/* Mobile top bar */}
       <MobileHeader onSearchOpen={onSearchOpen} />
 
