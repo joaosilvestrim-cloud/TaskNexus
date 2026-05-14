@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seu link de acesso — TaskNexus</title>
+</head>
+<body style="margin:0;padding:0;background:#07070f;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#07070f;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom:32px;">
+              <div style="display:inline-flex;align-items:center;gap:10px;">
+                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7);display:inline-block;text-align:center;line-height:40px;font-size:22px;font-weight:900;color:white;vertical-align:middle;">N</div>
+                <span style="font-size:22px;font-weight:800;color:#ffffff;vertical-align:middle;letter-spacing:-0.5px;">Task<span style="color:#a78bfa;">Nexus</span></span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background:#12121f;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;">
+
+              <!-- Accent bar -->
+              <tr>
+                <td style="height:4px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899);display:block;"></td>
+              </tr>
+
+              <!-- Body -->
+              <tr>
+                <td style="padding:40px 40px 32px;">
+
+                  <!-- Icon -->
+                  <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(236,72,153,0.15));border:1px solid rgba(139,92,246,0.25);margin:0 auto 24px;text-align:center;line-height:60px;font-size:28px;">
+                    ⚡
+                  </div>
+
+                  <!-- Title -->
+                  <h1 style="margin:0 0 8px;font-size:26px;font-weight:900;color:#ffffff;text-align:center;letter-spacing:-0.5px;">
+                    Seu link de acesso
+                  </h1>
+                  <p style="margin:0 0 28px;font-size:14px;color:#6b7280;text-align:center;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;">
+                    Magic Link · Acesso sem senha
+                  </p>
+
+                  <!-- Info box -->
+                  <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:16px 20px;margin-bottom:28px;text-align:center;">
+                    <p style="margin:0;font-size:14px;color:#a5b4fc;line-height:1.6;">
+                      Você solicitou um link de acesso instantâneo ao <strong>TaskNexus</strong>.<br/>
+                      Clique abaixo para entrar diretamente, sem precisar de senha.
+                    </p>
+                  </div>
+
+                  <!-- CTA Button -->
+                  <div style="text-align:center;margin-bottom:28px;">
+                    <a href="{{ .ConfirmationURL }}"
+                       style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;border-radius:14px;letter-spacing:0.3px;box-shadow:0 8px 28px rgba(99,102,241,0.4);">
+                      ⚡ &nbsp; Acessar agora
+                    </a>
+                  </div>
+
+                  <!-- Timer warning -->
+                  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;">
+                    <div style="flex:1;height:1px;background:rgba(255,255,255,0.06);"></div>
+                    <span style="font-size:12px;color:#4b5563;white-space:nowrap;padding:0 12px;">⏱ Válido por 1 hora</span>
+                    <div style="flex:1;height:1px;background:rgba(255,255,255,0.06);"></div>
+                  </div>
+
+                  <!-- Security note -->
+                  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 18px;">
+                    <p style="margin:0;font-size:12px;color:#4b5563;line-height:1.7;text-align:center;">
+                      🔒 Se você não solicitou este link, ignore este e-mail.<br/>
+                      Sua conta permanece segura — nenhuma ação é necessária.
+                    </p>
+                  </div>
+
+                </td>
+              </tr>
+
+              <!-- Divider -->
+              <tr>
+                <td style="height:1px;background:rgba(255,255,255,0.05);display:block;"></td>
+              </tr>
+
+              <!-- Alt link -->
+              <tr>
+                <td style="padding:20px 40px;text-align:center;">
+                  <p style="margin:0 0 6px;font-size:11px;color:#374151;">
+                    Se o botão não funcionar, acesse pelo link:
+                  </p>
+                  <a href="{{ .ConfirmationURL }}" style="font-size:11px;color:#6366f1;word-break:break-all;">
+                    {{ .ConfirmationURL }}
+                  </a>
+                </td>
+              </tr>
+
+            </td>
+          </tr>
+
+          <!-- Features strip -->
+          <tr>
+            <td style="padding:24px 0 0;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:16px;overflow:hidden;">
+                <tr>
+                  <td width="33%" style="text-align:center;padding:16px 8px;border-right:1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size:18px;margin-bottom:4px;">📋</div>
+                    <p style="margin:0;font-size:10px;color:#4b5563;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Kanban</p>
+                  </td>
+                  <td width="33%" style="text-align:center;padding:16px 8px;border-right:1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size:18px;margin-bottom:4px;">✨</div>
+                    <p style="margin:0;font-size:10px;color:#4b5563;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">IA Integrada</p>
+                  </td>
+                  <td width="33%" style="text-align:center;padding:16px 8px;">
+                    <div style="font-size:18px;margin-bottom:4px;">🎯</div>
+                    <p style="margin:0;font-size:10px;color:#4b5563;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Modo Foco</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 0;text-align:center;">
+              <p style="margin:0 0 4px;font-size:12px;color:#374151;">
+                Enviado por <strong style="color:#6366f1;">noreply@tasknexus.com.br</strong>
+              </p>
+              <p style="margin:0;font-size:11px;color:#1f2937;">
+                TaskNexus © 2025 · Gerenciador de tarefas com IA
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
