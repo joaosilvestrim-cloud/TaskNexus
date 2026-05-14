@@ -418,9 +418,14 @@ export function KanbanGlobal() {
   };
 
   // Stats globais
+  const allTasks     = tasks;
   const activeTasks  = tasks.filter(t => !t.completed);
   const overdueTasks = activeTasks.filter(t => t.dueDate && t.dueDate < todayStr);
   const doneToday    = tasks.filter(t => t.completed && t.completedAt?.startsWith(todayStr));
+  const dueToday     = activeTasks.filter(t => t.dueDate === todayStr);
+  const urgentTasks  = activeTasks.filter(t => t.priority === 'p1');
+  const totalDone    = tasks.filter(t => t.completed).length;
+  const completionRate = allTasks.length > 0 ? Math.round((totalDone / allTasks.length) * 100) : 0;
 
   // Filtros
   const filteredTasks = useMemo(() => {
@@ -502,26 +507,158 @@ export function KanbanGlobal() {
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
 
-      {/* ── Stats bar ── */}
-      <div className="flex items-center gap-2 md:gap-4 px-3 md:px-6 py-2 border-b border-[var(--c-border)] bg-[var(--c-elevated)] overflow-x-auto">
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-          <Activity size={11} className="text-indigo-400" />
-          <span className="text-xs text-indigo-300 font-medium">{activeTasks.length} <span className="text-indigo-400/70 font-normal">ativas</span></span>
+      {/* ── KPI Cards ── */}
+      <div className="px-4 md:px-6 py-4 border-b border-[var(--c-border)] overflow-x-auto"
+        style={{ background: 'var(--c-elevated)' }}>
+        <div className="flex gap-3 min-w-max md:min-w-0 md:grid md:grid-cols-5">
+
+          {/* Tarefas Ativas */}
+          <div className="flex-1 flex flex-col gap-1.5 px-4 py-3 rounded-2xl transition-all cursor-default"
+            style={{
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.1))',
+              border: '1px solid rgba(99,102,241,0.3)',
+              boxShadow: '0 4px 20px rgba(99,102,241,0.15)',
+              minWidth: '130px',
+            }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400/70">Em andamento</span>
+              <Activity size={13} className="text-indigo-400" />
+            </div>
+            <p className="text-3xl font-black text-indigo-300 leading-none">{activeTasks.length}</p>
+            <p className="text-[11px] text-indigo-400/60 font-medium">tarefas ativas</p>
+          </div>
+
+          {/* Concluídas hoje */}
+          <div className="flex-1 flex flex-col gap-1.5 px-4 py-3 rounded-2xl transition-all cursor-default"
+            style={{
+              background: doneToday.length > 0
+                ? 'linear-gradient(135deg, rgba(34,197,94,0.18), rgba(16,185,129,0.1))'
+                : 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))',
+              border: `1px solid ${doneToday.length > 0 ? 'rgba(34,197,94,0.3)' : 'var(--c-border)'}`,
+              boxShadow: doneToday.length > 0 ? '0 4px 20px rgba(34,197,94,0.12)' : 'none',
+              minWidth: '130px',
+            }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: doneToday.length > 0 ? 'rgba(74,222,128,0.7)' : 'var(--c-text3)' }}>
+                Concluídas hoje
+              </span>
+              <CheckCircle2 size={13} className={doneToday.length > 0 ? 'text-green-400' : 'text-[var(--c-text3)]'} />
+            </div>
+            <p className="text-3xl font-black leading-none"
+              style={{ color: doneToday.length > 0 ? '#4ade80' : 'var(--c-text3)' }}>
+              {doneToday.length}
+            </p>
+            <p className="text-[11px] font-medium"
+              style={{ color: doneToday.length > 0 ? 'rgba(74,222,128,0.6)' : 'var(--c-text3)' }}>
+              {doneToday.length === 0 ? 'nenhuma ainda' : doneToday.length === 1 ? 'tarefa concluída' : 'tarefas concluídas'}
+            </p>
+          </div>
+
+          {/* Para hoje */}
+          <div className="flex-1 flex flex-col gap-1.5 px-4 py-3 rounded-2xl transition-all cursor-default"
+            style={{
+              background: dueToday.length > 0
+                ? 'linear-gradient(135deg, rgba(234,179,8,0.15), rgba(245,158,11,0.08))'
+                : 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))',
+              border: `1px solid ${dueToday.length > 0 ? 'rgba(234,179,8,0.3)' : 'var(--c-border)'}`,
+              boxShadow: dueToday.length > 0 ? '0 4px 20px rgba(234,179,8,0.1)' : 'none',
+              minWidth: '130px',
+            }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: dueToday.length > 0 ? 'rgba(250,204,21,0.7)' : 'var(--c-text3)' }}>
+                Para hoje
+              </span>
+              <Calendar size={13} className={dueToday.length > 0 ? 'text-yellow-400' : 'text-[var(--c-text3)]'} />
+            </div>
+            <p className="text-3xl font-black leading-none"
+              style={{ color: dueToday.length > 0 ? '#facc15' : 'var(--c-text3)' }}>
+              {dueToday.length}
+            </p>
+            <p className="text-[11px] font-medium"
+              style={{ color: dueToday.length > 0 ? 'rgba(250,204,21,0.6)' : 'var(--c-text3)' }}>
+              {dueToday.length === 0 ? 'sem prazo hoje' : 'vencem hoje'}
+            </p>
+          </div>
+
+          {/* Atrasadas */}
+          <div className="flex-1 flex flex-col gap-1.5 px-4 py-3 rounded-2xl transition-all cursor-default"
+            style={{
+              background: overdueTasks.length > 0
+                ? 'linear-gradient(135deg, rgba(239,68,68,0.18), rgba(220,38,38,0.1))'
+                : 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))',
+              border: `1px solid ${overdueTasks.length > 0 ? 'rgba(239,68,68,0.35)' : 'var(--c-border)'}`,
+              boxShadow: overdueTasks.length > 0 ? '0 4px 20px rgba(239,68,68,0.15)' : 'none',
+              minWidth: '130px',
+            }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: overdueTasks.length > 0 ? 'rgba(252,165,165,0.7)' : 'var(--c-text3)' }}>
+                Atrasadas
+              </span>
+              <AlertCircle size={13} className={overdueTasks.length > 0 ? 'text-red-400' : 'text-[var(--c-text3)]'} />
+            </div>
+            <p className="text-3xl font-black leading-none"
+              style={{ color: overdueTasks.length > 0 ? '#f87171' : 'var(--c-text3)' }}>
+              {overdueTasks.length}
+            </p>
+            <p className="text-[11px] font-medium"
+              style={{ color: overdueTasks.length > 0 ? 'rgba(248,113,113,0.6)' : 'var(--c-text3)' }}>
+              {overdueTasks.length === 0 ? 'tudo em dia ✓' : overdueTasks.length === 1 ? 'tarefa atrasada' : 'tarefas atrasadas'}
+            </p>
+          </div>
+
+          {/* Taxa de conclusão */}
+          <div className="flex-1 flex flex-col gap-1.5 px-4 py-3 rounded-2xl transition-all cursor-default"
+            style={{
+              background: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(236,72,153,0.08))',
+              border: '1px solid rgba(168,85,247,0.25)',
+              boxShadow: '0 4px 20px rgba(168,85,247,0.1)',
+              minWidth: '130px',
+            }}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400/70">Taxa de conclusão</span>
+              <Clock size={13} className="text-purple-400" />
+            </div>
+            <p className="text-3xl font-black text-purple-300 leading-none">{completionRate}%</p>
+            {/* Mini progress bar */}
+            <div className="w-full h-1 rounded-full mt-0.5" style={{ background: 'rgba(168,85,247,0.2)' }}>
+              <div className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${completionRate}%`,
+                  background: 'linear-gradient(90deg,#a855f7,#ec4899)',
+                }} />
+            </div>
+            <p className="text-[11px] text-purple-400/60 font-medium">{totalDone} de {allTasks.length} total</p>
+          </div>
+
         </div>
-        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-colors ${
-          overdueTasks.length > 0
-            ? 'bg-red-500/10 border-red-500/20'
-            : 'bg-[var(--c-card)] border-[var(--c-border)]'
-        }`}>
-          <AlertCircle size={11} className={overdueTasks.length > 0 ? 'text-red-400' : 'text-[var(--c-text3)]'} />
-          <span className={`text-xs font-medium ${overdueTasks.length > 0 ? 'text-red-300' : 'text-[var(--c-text3)]'}`}>
-            {overdueTasks.length > 0 ? `${overdueTasks.length} atrasada${overdueTasks.length > 1 ? 's' : ''}` : 'Em dia'}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-green-500/10 border border-green-500/20">
-          <CheckCircle2 size={11} className="text-green-400" />
-          <span className="text-xs text-green-300 font-medium">{doneToday.length} <span className="text-green-400/70 font-normal">hoje</span></span>
-        </div>
+
+        {/* Urgentes warning — só aparece se houver P1 */}
+        {urgentTasks.length > 0 && (
+          <div className="flex items-center gap-2.5 mt-3 px-3 py-2 rounded-xl animate-fade-in"
+            style={{
+              background: 'linear-gradient(90deg, rgba(239,68,68,0.1), rgba(239,68,68,0.04))',
+              border: '1px solid rgba(239,68,68,0.25)',
+            }}>
+            <AlertCircle size={13} className="text-red-400 shrink-0" />
+            <p className="text-[11px] text-red-400 font-semibold">
+              {urgentTasks.length} tarefa{urgentTasks.length > 1 ? 's' : ''} urgente{urgentTasks.length > 1 ? 's' : ''} (P1) aguardando atenção:
+            </p>
+            <div className="flex gap-1.5 flex-wrap">
+              {urgentTasks.slice(0, 3).map(t => (
+                <span key={t.id} className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: 'rgba(239,68,68,0.15)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  {t.title.length > 28 ? t.title.slice(0, 28) + '…' : t.title}
+                </span>
+              ))}
+              {urgentTasks.length > 3 && (
+                <span className="text-[10px] text-red-400/60">+{urgentTasks.length - 3} mais</span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Toolbar ── */}
