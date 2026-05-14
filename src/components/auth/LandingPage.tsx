@@ -231,12 +231,66 @@ function FAQ({ q, a }: { q: string; a: string }) {
   );
 }
 
+/* ── Auth Error Banner ───────────────────────────────────────────────────── */
+function AuthErrorBanner({ onClose, onRetry }: { onClose: () => void; onRetry: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl text-center"
+        style={{ background: '#0f0f1e', border: '1px solid rgba(239,68,68,0.3)' }}>
+        <div style={{ height: 4, background: 'linear-gradient(90deg,#ef4444,#f97316)' }} />
+        <div className="px-8 py-8">
+          <div className="w-14 h-14 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center mx-auto mb-4 text-2xl">
+            ⏱️
+          </div>
+          <h2 className="text-white font-bold text-xl mb-2">Link expirado</h2>
+          <p className="text-white/50 text-sm mb-6 leading-relaxed">
+            O link de confirmação expirou ou já foi usado.<br/>
+            Links de confirmação são válidos por <strong className="text-white/70">24 horas</strong>.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button onClick={onRetry}
+              className="w-full py-3 rounded-xl font-bold text-sm text-white"
+              style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 4px 14px rgba(99,102,241,0.35)' }}>
+              Criar nova conta / Reenviar confirmação
+            </button>
+            <button onClick={onClose}
+              className="w-full py-2.5 rounded-xl text-sm text-white/40 hover:text-white/70 transition-colors">
+              Voltar para o início
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Landing Page ────────────────────────────────────────────────────────── */
 export function LandingPage() {
   const [modal, setModal] = useState<'login'|'signup'|null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  // Detect auth errors in URL hash (e.g. otp_expired, access_denied)
+  useState(() => {
+    const hash = window.location.hash;
+    if (hash.includes('error=') || hash.includes('error_code=')) {
+      const params = new URLSearchParams(hash.replace('#', ''));
+      const code = params.get('error_code') ?? params.get('error');
+      setAuthError(code ?? 'unknown');
+      // Clean up the URL
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  });
 
   return (
     <div className="min-h-screen w-full text-white" style={{ background:'#070711' }}>
+
+      {/* ── Auth error modal ── */}
+      {authError && (
+        <AuthErrorBanner
+          onClose={() => setAuthError(null)}
+          onRetry={() => { setAuthError(null); setModal('signup'); }}
+        />
+      )}
 
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-40 border-b border-white/5" style={{ background:'rgba(7,7,17,0.92)', backdropFilter:'blur(16px)' }}>
