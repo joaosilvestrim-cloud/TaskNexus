@@ -3,6 +3,7 @@ import {
   X, Trash2, Calendar, Flag, Tag, Plus, RepeatIcon, AlignLeft,
   Clock, ChevronDown, CheckSquare, Square, Check, FolderOpen, Layers,
   Copy, ArrowUpRight, Link2, Paperclip, MessageSquare, Palette,
+  Save, Sparkles, Loader2,
 } from 'lucide-react';
 import { format, addDays, startOfToday, parseISO, isToday, isTomorrow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -113,10 +114,68 @@ export function TaskDetail({ mobileOverlay = false }: { mobileOverlay?: boolean 
   const [depSearch, setDepSearch]     = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Local edit state (título + descrição) ────────────────────────────────
+  const [localTitle, setLocalTitle]   = useState('');
+  const [localDesc,  setLocalDesc]    = useState('');
+  const [nexusLoading, setNexusLoading] = useState(false);
+  const [nexusSaved, setNexusSaved]   = useState(false);
+
   const task = tasks.find((t) => t.id === selectedTaskId);
 
-  const titleRef = useAutoResize(task?.title ?? '');
-  const descRef  = useAutoResize(task?.description ?? '');
+  // Sync local state when task changes
+  useEffect(() => {
+    if (task) {
+      setLocalTitle(task.title);
+      setLocalDesc(task.description ?? '');
+      setNexusSaved(false);
+    }
+  }, [task?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isDirty = task
+    ? localTitle !== task.title || localDesc !== (task.description ?? '')
+    : false;
+
+  const handleSave = useCallback(() => {
+    if (!task) return;
+    updateTask(task.id, { title: localTitle.trim(), description: localDesc });
+    setNexusSaved(true);
+    setTimeout(() => setNexusSaved(false), 2000);
+  }, [task, localTitle, localDesc, updateTask]);
+
+  // ── Inteligência Nexus — melhorar descrição ──────────────────────────────
+  const improveWithNexus = async () => {
+    if (!task || nexusLoading) return;
+    const current = localDesc.trim() || localTitle;
+    setNexusLoading(true);
+    try {
+      const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string;
+      const prompt = `Você é um assistente de produtividade chamado Inteligência Nexus. Melhore a descrição desta tarefa deixando-a mais clara, objetiva e útil para execução. Retorne APENAS a descrição melhorada, sem explicações, sem aspas, sem markdown.
+
+Título da tarefa: "${localTitle}"
+Descrição atual: "${current}"`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+      const data = await res.json();
+      const improved = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? '';
+      if (improved) setLocalDesc(improved);
+    } catch {
+      // silently fail
+    } finally {
+      setNexusLoading(false);
+    }
+  };
+
+  const titleRef = useAutoResize(localTitle);
+  const descRef  = useAutoResize(localDesc);
 
   const handleAddComment = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -231,6 +290,38 @@ export function TaskDetail({ mobileOverlay = false }: { mobileOverlay?: boolean 
         </div>
       </div>
 
+      {/* ── Save bar ── */}
+      {(isDirty || nexusSaved) && (
+        <div className={`flex items-center justify-between px-4 py-2.5 border-b transition-all ${
+          nexusSaved
+            ? 'bg-green-500/10 border-green-500/20'
+            : 'bg-indigo-500/8 border-indigo-500/20'
+        }`}>
+          <span className={`text-xs font-medium flex items-center gap-1.5 ${nexusSaved ? 'text-green-400' : 'text-indigo-400'}`}>
+            {nexusSaved
+              ? <><Check size={12} /> Salvo com sucesso!</>
+              : <><Save size={12} /> Alterações não salvas</>
+            }
+          </span>
+          {!nexusSaved && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setLocalTitle(task.title); setLocalDesc(task.description ?? ''); }}
+                className="text-xs text-[var(--c-text3)] hover:text-[var(--c-text2)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--c-hover)]"
+              >
+                Descartar
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm"
+              >
+                <Save size={11} /> Salvar
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex-1 px-5 py-5 space-y-6">
 
         {/* ── Título ── */}
@@ -241,8 +332,9 @@ export function TaskDetail({ mobileOverlay = false }: { mobileOverlay?: boolean 
           </button>
           <textarea
             ref={titleRef}
-            value={task.title}
-            onChange={e => updateTask(task.id, { title: e.target.value })}
+            value={localTitle}
+            onChange={e => setLocalTitle(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave(); } }}
             className={`flex-1 text-[15px] font-semibold text-[var(--c-text1)] focus:outline-none resize-none bg-transparent leading-snug overflow-hidden
               ${task.completed ? 'line-through text-[var(--c-text3)]' : ''}`}
             rows={1}
@@ -280,11 +372,28 @@ export function TaskDetail({ mobileOverlay = false }: { mobileOverlay?: boolean 
           <div className="flex items-center gap-1.5 mb-2">
             <AlignLeft size={13} className="text-[var(--c-text3)]" />
             <span className="text-xs font-semibold text-[var(--c-text2)]">Descrição</span>
+            <button
+              type="button"
+              onClick={improveWithNexus}
+              disabled={nexusLoading}
+              title="Melhorar com Inteligência Nexus"
+              className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg border transition-all disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.12))',
+                borderColor: 'rgba(139,92,246,0.35)',
+                color: '#a78bfa',
+              }}
+            >
+              {nexusLoading
+                ? <><Loader2 size={10} className="animate-spin" /> Processando...</>
+                : <><Sparkles size={10} /> Inteligência Nexus</>
+              }
+            </button>
           </div>
           <textarea
             ref={descRef}
-            value={task.description}
-            onChange={e => updateTask(task.id, { description: e.target.value })}
+            value={localDesc}
+            onChange={e => setLocalDesc(e.target.value)}
             placeholder="Adicionar descrição..."
             className="w-full text-sm text-[var(--c-text1)] focus:outline-none resize-none bg-[var(--c-elevated)] rounded-xl px-3 py-2.5 placeholder-[var(--c-text3)] min-h-[60px] overflow-hidden border border-transparent focus:border-indigo-400/50 transition-colors"
             rows={1}
