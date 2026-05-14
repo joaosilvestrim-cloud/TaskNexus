@@ -155,7 +155,37 @@ export function Sidebar() {
         <p className="px-2 pb-1 text-[10px] font-bold text-[var(--c-text3)] uppercase tracking-widest">Entrada</p>
         <div className="space-y-0.5">
           {navBtn('inbox',  'Caixa de entrada', <Inbox size={14} />, inboxCount)}
-          {navBtn('kanban', 'Kanban',            <LayoutGrid size={14} />)}
+
+          {/* Kanban — destaque especial */}
+          {(() => {
+            const active = isActive(activeView, 'kanban');
+            const btn = (
+              <button
+                onClick={() => setActiveView('kanban')}
+                className="w-full flex items-center gap-2.5 pl-3 pr-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 group"
+                style={{
+                  background: active
+                    ? 'linear-gradient(135deg, rgba(99,102,241,0.35), rgba(139,92,246,0.25))'
+                    : 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08))',
+                  border: `1px solid ${active ? 'rgba(99,102,241,0.5)' : 'rgba(99,102,241,0.2)'}`,
+                  color: active ? '#a78bfa' : '#818cf8',
+                  boxShadow: active ? '0 0 16px rgba(99,102,241,0.2)' : 'none',
+                }}
+              >
+                <LayoutGrid size={14} style={{ color: active ? '#a78bfa' : '#818cf8' }} />
+                <span className="flex-1 text-left">Kanban</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ background: 'rgba(99,102,241,0.25)', color: '#a78bfa', letterSpacing: '0.05em' }}>
+                  BOARD
+                </span>
+              </button>
+            );
+            return (
+              <Tooltip text="Quadro visual com colunas personalizáveis (arrastar e soltar)" side="right">
+                {btn}
+              </Tooltip>
+            );
+          })()}
         </div>
       </div>
 
