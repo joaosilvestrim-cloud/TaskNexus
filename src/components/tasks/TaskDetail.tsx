@@ -10,6 +10,7 @@ import { ptBR } from 'date-fns/locale';
 import { v4 as uuid } from 'uuid';
 import { useStore } from '../../store/useStore';
 import { PRIORITY_CONFIG, PROJECT_COLORS } from '../../utils/priority';
+import { Tooltip } from '../shared/Tooltip';
 import type { Priority, Recurrence, Attachment } from '../../types';
 
 const PRIORITIES: Priority[] = ['p1', 'p2', 'p3', 'p4'];
@@ -274,19 +275,25 @@ Descrição atual: "${current}"`;
       <div className={`${mobileOverlay ? 'hidden' : 'flex'} items-center justify-between px-5 py-3.5 border-b border-[var(--c-border)] sticky top-0 bg-[var(--c-card)] z-10`}>
         <span className="text-xs font-semibold text-[var(--c-text3)] uppercase tracking-wider">Detalhes</span>
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => duplicateTask(task.id)}
-            className="p-1.5 rounded-lg hover:bg-[var(--c-hover)] text-[var(--c-text3)] hover:text-[var(--c-text2)] transition-colors" title="Duplicar">
-            <Copy size={14} />
-          </button>
-          <button onClick={() => { deleteTask(task.id); setSelectedTask(null); }}
-            className="p-1.5 rounded-lg hover:bg-red-50/10 text-[var(--c-text3)] hover:text-red-400 transition-colors" title="Excluir">
-            <Trash2 size={14} />
-          </button>
-          <button onClick={() => setSelectedTask(null)}
-            className="p-1.5 rounded-lg hover:bg-[var(--c-hover)] text-[var(--c-text3)]" title="Fechar">
-            <X size={14} />
-          </button>
+          <Tooltip text="Duplicar tarefa" side="bottom">
+            <button
+              onClick={() => duplicateTask(task.id)}
+              className="p-1.5 rounded-lg hover:bg-[var(--c-hover)] text-[var(--c-text3)] hover:text-[var(--c-text2)] transition-colors">
+              <Copy size={14} />
+            </button>
+          </Tooltip>
+          <Tooltip text="Excluir tarefa permanentemente" side="bottom">
+            <button onClick={() => { deleteTask(task.id); setSelectedTask(null); }}
+              className="p-1.5 rounded-lg hover:bg-red-50/10 text-[var(--c-text3)] hover:text-red-400 transition-colors">
+              <Trash2 size={14} />
+            </button>
+          </Tooltip>
+          <Tooltip text="Fechar painel de detalhes" side="bottom" shortcut="Esc">
+            <button onClick={() => setSelectedTask(null)}
+              className="p-1.5 rounded-lg hover:bg-[var(--c-hover)] text-[var(--c-text3)]">
+              <X size={14} />
+            </button>
+          </Tooltip>
         </div>
       </div>
 

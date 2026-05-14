@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO, isToday, addDays, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Tooltip } from '../shared/Tooltip';
 import { useStore } from '../../store/useStore';
 import { PRIORITY_CONFIG } from '../../utils/priority';
 import type { Priority, Task } from '../../types';
@@ -555,25 +556,28 @@ export function KanbanGlobal() {
         {/* Right-side controls */}
         <div className="flex items-center gap-1.5 ml-auto">
           {/* Compact toggle */}
-          <button
-            onClick={() => setCompact(v => !v)}
-            title={compact ? 'Modo normal' : 'Modo compacto'}
-            className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-xl border transition-all ${
-              compact
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow shadow-indigo-500/25'
-                : 'bg-[var(--c-elevated)] border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:border-[var(--c-border2)]'
-            }`}
-          >
-            <LayoutList size={12} />
-            <span className="hidden sm:inline">{compact ? 'Compacto' : 'Normal'}</span>
-          </button>
+          <Tooltip text={compact ? 'Voltar para cards normais' : 'Reduzir cards para visualizar mais tarefas'} side="bottom">
+            <button
+              onClick={() => setCompact(v => !v)}
+              className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-xl border transition-all ${
+                compact
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow shadow-indigo-500/25'
+                  : 'bg-[var(--c-elevated)] border-[var(--c-border)] text-[var(--c-text3)] hover:text-[var(--c-text2)] hover:border-[var(--c-border2)]'
+              }`}
+            >
+              <LayoutList size={12} />
+              <span className="hidden sm:inline">{compact ? 'Compacto' : 'Normal'}</span>
+            </button>
+          </Tooltip>
 
           {/* Clear filters */}
           {hasFilters && (
-            <button onClick={() => { setSearch(''); setFilterProject(''); setFilterPriority(''); setSwimlane('none'); }}
-              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all">
-              <X size={12} /> Limpar
-            </button>
+            <Tooltip text="Remover todos os filtros ativos" side="bottom">
+              <button onClick={() => { setSearch(''); setFilterProject(''); setFilterPriority(''); setSwimlane('none'); }}
+                className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all">
+                <X size={12} /> Limpar
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>

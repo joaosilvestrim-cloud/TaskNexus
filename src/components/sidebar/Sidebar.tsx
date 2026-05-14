@@ -8,6 +8,7 @@ import { useStore } from '../../store/useStore';
 import type { NavView } from '../../types';
 import { AddProjectModal } from '../projects/AddProjectModal';
 import { UserMenu } from '../shared/UserMenu';
+import { Tooltip } from '../shared/Tooltip';
 
 const PROJECT_DOT: Record<string, string> = {
   red:'bg-red-500', orange:'bg-orange-500', yellow:'bg-yellow-400',
@@ -39,9 +40,23 @@ export function Sidebar() {
   const todayStr   = new Date().toISOString().split('T')[0];
   const todayCount = tasks.filter(t => !t.completed && t.dueDate === todayStr).length;
 
+  const NAV_TOOLTIPS: Partial<Record<string, string>> = {
+    inbox:    'Tarefas sem projeto — sua caixa de entrada geral',
+    kanban:   'Quadro visual com colunas personalizáveis (arrastar e soltar)',
+    today:    'Tarefas com prazo para hoje',
+    upcoming: 'Tarefas dos próximos 7 dias',
+    calendar: 'Visualização em calendário mensal',
+    focus:    'Modo foco com timer Pomodoro — sem distrações',
+    meetings: 'Criar e gerenciar atas de reunião com IA',
+    notes:    'Central de anotações e base de conhecimento',
+  };
+
   const navBtn = (view: NavView, label: string, icon: React.ReactNode, badge?: number) => {
     const active = isActive(activeView, view);
-    return (
+    const tooltipKey = typeof view === 'string' ? view : view.type;
+    const tooltipText = NAV_TOOLTIPS[tooltipKey];
+
+    const btn = (
       <button key={JSON.stringify(view) + label} onClick={() => setActiveView(view)}
         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all group
           ${active
@@ -54,6 +69,10 @@ export function Sidebar() {
         )}
       </button>
     );
+
+    return tooltipText
+      ? <Tooltip key={JSON.stringify(view) + label} text={tooltipText} side="right">{btn}</Tooltip>
+      : btn;
   };
 
   const sectionHeader = (label: string, open: boolean, toggle: () => void, onAdd?: () => void) => (

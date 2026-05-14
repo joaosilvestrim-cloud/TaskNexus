@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles, Loader2, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Tooltip } from '../shared/Tooltip';
 import { useStore } from '../../store/useStore';
 import type { Priority } from '../../types';
 
@@ -177,6 +178,7 @@ export function AIAssistant() {
           </div>
         )}
 
+        <Tooltip text={open ? 'Fechar assistente' : 'Nex — Assistente IA: crie tarefas em linguagem natural'} side="left">
         <button
           onClick={() => { setOpen(v => !v); setPulse(false); }}
           className={`relative w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-300 ${
@@ -194,6 +196,7 @@ export function AIAssistant() {
             <NexIcon />
           )}
         </button>
+        </Tooltip>
       </div>
 
       {/* ── Chat panel ──────────────────────────────────────────────────── */}
