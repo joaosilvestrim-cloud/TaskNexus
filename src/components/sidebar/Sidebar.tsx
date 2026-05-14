@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Inbox, CalendarCheck, CalendarDays, ChevronDown, ChevronRight,
+  Inbox, CalendarCheck, CalendarDays, ChevronDown,
   Plus, LayoutGrid, Hash, Calendar, Target, X, FileText, BookOpen, Download, Smartphone,
 } from 'lucide-react';
 import { usePWAInstall } from '../shared/PWAInstallBanner';
