@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect, cloneElement } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 interface TooltipProps {
   text: string;
-  children: React.ReactElement;
+  children: React.ReactElement<React.HTMLAttributes<HTMLElement>>;
   side?: 'top' | 'bottom' | 'left' | 'right';
   delay?: number;
   shortcut?: string;
@@ -12,12 +12,12 @@ interface TooltipProps {
 export function Tooltip({ text, children, side = 'top', delay = 400, shortcut }: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const [coords, setCoords]   = useState({ x: 0, y: 0 });
-  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const triggerRef = useRef<HTMLElement>(null);
+  const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrapperRef = useRef<HTMLSpanElement>(null);
 
   const show = () => {
     timerRef.current = setTimeout(() => {
-      const el = triggerRef.current;
+      const el = wrapperRef.current?.firstElementChild as HTMLElement | null;
       if (!el) return;
       const r = el.getBoundingClientRect();
       const GAP = 8;
@@ -45,17 +45,19 @@ export function Tooltip({ text, children, side = 'top', delay = 400, shortcut }:
     right:  'translateY(-50%)',
   }[side];
 
-  const cloned = cloneElement(children, {
-    ref: triggerRef,
-    onMouseEnter: (e: React.MouseEvent) => { show(); (children.props.onMouseEnter as ((e: React.MouseEvent) => void) | undefined)?.(e); },
-    onMouseLeave: (e: React.MouseEvent) => { hide(); (children.props.onMouseLeave as ((e: React.MouseEvent) => void) | undefined)?.(e); },
-    onFocus:      (e: React.FocusEvent) => { show(); (children.props.onFocus  as ((e: React.FocusEvent)  => void) | undefined)?.(e); },
-    onBlur:       (e: React.FocusEvent) => { hide(); (children.props.onBlur   as ((e: React.FocusEvent)  => void) | undefined)?.(e); },
-  });
-
   return (
     <>
-      {cloned}
+      <span
+        ref={wrapperRef}
+        style={{ display: 'contents' }}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+      >
+        {children}
+      </span>
+
       {visible && createPortal(
         <div
           role="tooltip"
