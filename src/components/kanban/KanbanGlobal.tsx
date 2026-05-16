@@ -1180,11 +1180,6 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
     ? { backgroundColor: projHex + '22', borderColor: projHex + '55' }
     : {};
 
-  // Left border color from colorTag or priority
-  const borderStyle = task.colorTag
-    ? { ...cardBgStyle, borderLeftColor: task.colorTag, borderLeftWidth: '4px', borderLeftStyle: 'solid' as const }
-    : cardBgStyle;
-  const borderClass = task.colorTag ? '' : (PRIORITY_BORDER[task.priority] ?? '');
 
   // Cover color: colorTag > project color > priority color
   const coverColor = task.colorTag
