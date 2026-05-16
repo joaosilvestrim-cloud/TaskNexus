@@ -1210,13 +1210,18 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
       className={`group relative rounded-2xl cursor-pointer transition-all duration-150 select-none overflow-hidden
         ${task.completed ? 'opacity-50' : ''}
         ${isDragOver ? 'ring-2 ring-indigo-400 scale-[0.98]' : ''}
-        ${isSelected ? 'ring-2 ring-indigo-500' : ''}`}
+        ${isSelected ? 'ring-2 ring-indigo-500' : ''}
+        ${isOverdue && !task.completed ? 'animate-pulse' : ''}`}
       style={{
         background: 'var(--c-card)',
-        border: `1px solid ${isSelected ? 'rgba(99,102,241,0.5)' : 'var(--c-border)'}`,
-        boxShadow: isSelected
-          ? '0 0 0 3px rgba(99,102,241,0.15), 0 4px 16px rgba(0,0,0,0.2)'
-          : '0 2px 8px rgba(0,0,0,0.15)',
+        border: isOverdue && !task.completed
+          ? '1px solid rgba(239,68,68,0.45)'
+          : `1px solid ${isSelected ? 'rgba(99,102,241,0.5)' : 'var(--c-border)'}`,
+        boxShadow: isOverdue && !task.completed
+          ? '0 0 12px rgba(239,68,68,0.18), 0 2px 8px rgba(0,0,0,0.15)'
+          : isSelected
+            ? '0 0 0 3px rgba(99,102,241,0.15), 0 4px 16px rgba(0,0,0,0.2)'
+            : '0 2px 8px rgba(0,0,0,0.15)',
       }}
     >
       {/* ── Cover bar (Trello style) ── */}
@@ -1298,9 +1303,9 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
             {dueDateLabel && (
               <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full
                 ${isOverdue
-                  ? 'bg-red-500/20 text-red-400'
+                  ? 'bg-red-500/20 text-red-400 animate-pulse'
                   : isDueToday
-                    ? 'bg-green-500/20 text-green-400'
+                    ? 'bg-green-500/20 text-green-400 animate-pulse'
                     : 'bg-[var(--c-elevated)] text-[var(--c-text3)]'}`}>
                 <Calendar size={9} />
                 {dueDateLabel}
