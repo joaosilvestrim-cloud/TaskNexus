@@ -1186,6 +1186,16 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
     : cardBgStyle;
   const borderClass = task.colorTag ? '' : (PRIORITY_BORDER[task.priority] ?? '');
 
+  // Cover color: colorTag > project color > priority color
+  const coverColor = task.colorTag
+    ? task.colorTag
+    : projHex
+      ? projHex
+      : task.priority === 'p1' ? '#ef4444'
+      : task.priority === 'p2' ? '#f97316'
+      : task.priority === 'p3' ? '#6366f1'
+      : null;
+
   return (
     <div
       draggable
@@ -1211,133 +1221,172 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
         }
       }}
       onClick={onSelect}
-      style={borderStyle}
-      className={`group relative rounded-xl border cursor-pointer transition-all select-none overflow-hidden
-        ${borderClass}
-        ${isSelected
-          ? 'bg-[var(--c-active)] border-indigo-500'
-          : 'bg-[var(--c-card)] border-[var(--c-border)] hover:border-[var(--c-border2)] hover:bg-[var(--c-hover)]'}
-        ${task.completed ? 'opacity-60' : ''}
-        ${isDragOver ? 'border-t-2 border-t-indigo-400' : ''}
-        ${isOverdue ? 'overdue-glow border-red-500/60' : ''}
-        ${isDueToday && !task.completed && !isOverdue ? 'today-glow border-green-500/60' : ''}`}
+      className={`group relative rounded-2xl cursor-pointer transition-all duration-150 select-none overflow-hidden
+        ${task.completed ? 'opacity-50' : ''}
+        ${isDragOver ? 'ring-2 ring-indigo-400 scale-[0.98]' : ''}
+        ${isSelected ? 'ring-2 ring-indigo-500' : ''}`}
+      style={{
+        background: 'var(--c-card)',
+        border: `1px solid ${isSelected ? 'rgba(99,102,241,0.5)' : 'var(--c-border)'}`,
+        boxShadow: isSelected
+          ? '0 0 0 3px rgba(99,102,241,0.15), 0 4px 16px rgba(0,0,0,0.2)'
+          : '0 2px 8px rgba(0,0,0,0.15)',
+      }}
     >
-      {/* ⬅️➡️ Botões de mover */}
-      <div className="absolute top-2 right-2 hidden group-hover:flex items-center gap-1 z-10">
-        {colIdx > 0 && (
-          <button onClick={e => { e.stopPropagation(); onMove(task.id, 'prev'); }}
-            title="Coluna anterior"
-            className="w-5 h-5 flex items-center justify-center rounded bg-[var(--c-elevated)] border border-[var(--c-border)] text-[var(--c-text2)] hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all">
-            <ChevronLeft size={11} />
-          </button>
-        )}
-        {colIdx < colCount - 1 && (
-          <button onClick={e => { e.stopPropagation(); onMove(task.id, 'next'); }}
-            title="Próxima coluna"
-            className="w-5 h-5 flex items-center justify-center rounded bg-[var(--c-elevated)] border border-[var(--c-border)] text-[var(--c-text2)] hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all">
-            <ChevronRight size={11} />
-          </button>
-        )}
-      </div>
+      {/* ── Cover bar (Trello style) ── */}
+      {coverColor && !compact && (
+        <div className="h-2 w-full" style={{ background: coverColor, opacity: task.completed ? 0.4 : 0.85 }} />
+      )}
 
-      <div className={compact ? 'px-3 py-1.5' : 'p-3'}>
+      <div className={compact ? 'px-3 py-2' : 'px-3 pt-2.5 pb-3'}>
+
+        {/* Labels row (Trello style pills) */}
+        {!compact && taskLabels.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {taskLabels.map(l => (
+              <span key={l.id}
+                className="h-2 w-8 rounded-full inline-block"
+                title={l.name}
+                style={{ backgroundColor: l.color }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Title + checkbox row */}
         <div className="flex items-start gap-2">
-          {/* Checkbox */}
           <button
             onClick={e => { e.stopPropagation(); updateTask(task.id, { completed: !task.completed, status: !task.completed ? 'done' : 'backlog' }); }}
-            className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors
-              ${task.completed ? 'bg-green-600 border-green-600' : 'border-[var(--c-border2)] hover:border-[var(--c-text3)]'}`}
+            className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all
+              ${task.completed
+                ? 'bg-green-500 border-green-500'
+                : 'border-[var(--c-border2)] hover:border-indigo-400 hover:bg-indigo-500/10'}`}
           >
-            {task.completed && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 10 10"><path d="M1.5 5l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+            {task.completed && (
+              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 10 10">
+                <path d="M1.5 5l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
           </button>
 
-          <div className="flex-1 min-w-0 pr-6">
-            <p className={`leading-snug ${compact ? 'text-xs' : 'text-sm'} ${task.completed ? 'line-through text-[var(--c-text3)]' : 'text-[var(--c-text1)]'}`}>
-              {task.title}
-            </p>
+          <p className={`flex-1 leading-snug ${compact ? 'text-xs' : 'text-[13px]'} font-medium
+            ${task.completed ? 'line-through text-[var(--c-text3)]' : 'text-[var(--c-text1)]'}`}>
+            {task.title}
+          </p>
 
-            {/* In compact mode: only show priority + recurrence + date inline */}
-            {compact ? (
-              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                {task.recurrence?.type !== 'none' && task.recurrence?.type && (
-                  <span title="Recorrente" className="text-xs text-indigo-400">🔁</span>
-                )}
-                {dueDateLabel && (
-                  <span className={`text-xs font-medium ${isOverdue ? 'text-red-500' : isDueToday ? 'text-green-500' : 'text-[var(--c-text3)]'}`}>
-                    {isOverdue ? '⚠ ' : ''}{dueDateLabel}
-                  </span>
-                )}
-                <button onClick={cyclePriority}
-                  className={`text-xs font-bold ml-auto transition-all hover:opacity-75
-                    ${task.priority === 'p4' ? 'text-[var(--c-text3)]' : cfg?.color ?? ''}`}>
-                  {task.priority === 'p4' ? '—' : task.priority.toUpperCase()}
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  {project && (
-                    <div className="flex items-center gap-1">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${PROJECT_DOT[project.color] ?? 'bg-gray-500'}`} />
-                      <span className="text-xs text-[var(--c-text3)]">{project.name}</span>
-                    </div>
-                  )}
-                  <button onClick={cyclePriority} title="Clique para mudar prioridade"
-                    className={`text-xs font-bold px-1.5 py-0.5 rounded transition-all hover:opacity-75
-                      ${task.priority === 'p4' ? 'text-[var(--c-text3)] hover:text-[var(--c-text2)]' : cfg?.color ?? ''}`}>
-                    {task.priority === 'p4' ? '—' : cfg?.label ?? task.priority}
-                  </button>
-                  {task.recurrence?.type !== 'none' && task.recurrence?.type && (
-                    <span title={`Recorrente: ${task.recurrence.type}`} className="flex items-center gap-0.5 text-xs text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-full font-medium">
-                      🔁
-                    </span>
-                  )}
-                  {isBlocked && <span title="Bloqueada por dependências"><Link2 size={10} className="text-amber-400" /></span>}
-                  {task.estimatedMinutes && <span title={`Estimado: ${task.estimatedMinutes}min`}><Clock size={10} className="text-[var(--c-text3)]" /></span>}
-                </div>
-
-                {dueDateLabel && (
-                  <div className={`flex items-center gap-1 mt-1.5 text-xs font-medium
-                    ${isOverdue ? 'text-red-500' : isDueToday ? 'text-green-500' : 'text-[var(--c-text3)]'}`}>
-                    <Calendar size={10} />
-                    <span>{isOverdue ? '⚠ ' : ''}{dueDateLabel}</span>
-                  </div>
-                )}
-
-                {taskLabels.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {taskLabels.map(l => (
-                      <span key={l.id} className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                        style={{ backgroundColor: l.color + '22', color: l.color }}>
-                        {l.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {subtaskTotal > 0 && (
-                  <div className="mt-2">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <span className="text-xs text-[var(--c-text3)]">{subtaskDone}/{subtaskTotal} subtarefas</span>
-                      <span className="text-xs text-[var(--c-text3)]">{Math.round(subtaskPct)}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-[var(--c-border2)] rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${subtaskPct === 100 ? 'bg-green-500' : 'bg-indigo-500'}`}
-                        style={{ width: `${subtaskPct}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </>
+          {/* Move buttons */}
+          <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
+            {colIdx > 0 && (
+              <button onClick={e => { e.stopPropagation(); onMove(task.id, 'prev'); }}
+                className="w-5 h-5 flex items-center justify-center rounded-lg bg-[var(--c-elevated)] text-[var(--c-text3)] hover:bg-indigo-600 hover:text-white transition-all">
+                <ChevronLeft size={10} />
+              </button>
             )}
-
-            {/* Color tag dot */}
-            {task.colorTag && (
-              <div className="absolute top-2 left-2 w-2 h-2 rounded-full" style={{ backgroundColor: task.colorTag }} />
+            {colIdx < colCount - 1 && (
+              <button onClick={e => { e.stopPropagation(); onMove(task.id, 'next'); }}
+                className="w-5 h-5 flex items-center justify-center rounded-lg bg-[var(--c-elevated)] text-[var(--c-text3)] hover:bg-indigo-600 hover:text-white transition-all">
+                <ChevronRight size={10} />
+              </button>
             )}
           </div>
         </div>
+
+        {/* Subtask progress bar */}
+        {!compact && subtaskTotal > 0 && (
+          <div className="mt-2.5 mb-1">
+            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--c-border2)' }}>
+              <div className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${subtaskPct}%`,
+                  background: subtaskPct === 100 ? '#22c55e' : 'linear-gradient(90deg,#6366f1,#8b5cf6)',
+                }} />
+            </div>
+          </div>
+        )}
+
+        {/* ── Footer (Trello style) ── */}
+        {!compact && (
+          <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+
+            {/* Due date chip */}
+            {dueDateLabel && (
+              <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full
+                ${isOverdue
+                  ? 'bg-red-500/20 text-red-400'
+                  : isDueToday
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-[var(--c-elevated)] text-[var(--c-text3)]'}`}>
+                <Calendar size={9} />
+                {dueDateLabel}
+              </span>
+            )}
+
+            {/* Subtasks badge */}
+            {subtaskTotal > 0 && (
+              <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full
+                ${subtaskPct === 100 ? 'bg-green-500/20 text-green-400' : 'bg-[var(--c-elevated)] text-[var(--c-text3)]'}`}>
+                <CheckCircle2 size={9} />
+                {subtaskDone}/{subtaskTotal}
+              </span>
+            )}
+
+            {/* Comments */}
+            {task.comments?.length > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-[var(--c-text3)] bg-[var(--c-elevated)] px-2 py-0.5 rounded-full font-semibold">
+                <Activity size={9} /> {task.comments.length}
+              </span>
+            )}
+
+            {/* Attachments */}
+            {task.attachments?.length > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-[var(--c-text3)] bg-[var(--c-elevated)] px-2 py-0.5 rounded-full font-semibold">
+                <Link2 size={9} /> {task.attachments.length}
+              </span>
+            )}
+
+            {/* Recurrence */}
+            {task.recurrence?.type !== 'none' && task.recurrence?.type && (
+              <span className="text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-full font-semibold">🔁</span>
+            )}
+
+            {/* Blocked */}
+            {isBlocked && (
+              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full font-semibold">
+                <Link2 size={9} className="inline" /> bloqueada
+              </span>
+            )}
+
+            {/* Priority badge (only p1/p2) */}
+            {(task.priority === 'p1' || task.priority === 'p2') && (
+              <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${cfg?.color ?? ''}`}
+                style={{ background: task.priority === 'p1' ? 'rgba(239,68,68,0.15)' : 'rgba(249,115,22,0.15)' }}>
+                {cfg?.label}
+              </span>
+            )}
+
+            {/* Project dot */}
+            {project && (
+              <span className="ml-auto flex items-center gap-1 text-[10px] text-[var(--c-text3)]">
+                <span className={`w-1.5 h-1.5 rounded-full ${PROJECT_DOT[project.color] ?? 'bg-gray-500'}`} />
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Compact footer */}
+        {compact && (
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {dueDateLabel && (
+              <span className={`text-[10px] font-medium ${isOverdue ? 'text-red-400' : isDueToday ? 'text-green-400' : 'text-[var(--c-text3)]'}`}>
+                {dueDateLabel}
+              </span>
+            )}
+            <button onClick={cyclePriority}
+              className={`text-[10px] font-bold ml-auto ${task.priority === 'p4' ? 'text-[var(--c-text3)]' : cfg?.color ?? ''}`}>
+              {task.priority === 'p4' ? '' : task.priority.toUpperCase()}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
