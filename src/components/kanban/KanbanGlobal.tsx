@@ -11,12 +11,6 @@ import { useStore } from '../../store/useStore';
 import { PRIORITY_CONFIG } from '../../utils/priority';
 import type { Priority, Task } from '../../types';
 
-const PRIORITY_BORDER: Record<string, string> = {
-  p1: 'border-l-4 border-l-red-500',
-  p2: 'border-l-4 border-l-orange-400',
-  p3: 'border-l-4 border-l-blue-400',
-  p4: '',
-};
 
 const PRIORITY_CYCLE: Priority[] = ['p1', 'p2', 'p3', 'p4'];
 
@@ -1176,9 +1170,6 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
 
   // Card background from project color
   const projHex = project ? PROJECT_HEX[project.color] : null;
-  const cardBgStyle = projHex
-    ? { backgroundColor: projHex + '22', borderColor: projHex + '55' }
-    : {};
 
 
   // Cover color: colorTag > project color > priority color
