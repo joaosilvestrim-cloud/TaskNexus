@@ -1211,17 +1211,14 @@ function TaskCard({ task, isSelected, onSelect, getProject, labels, onMove, colI
         ${task.completed ? 'opacity-50' : ''}
         ${isDragOver ? 'ring-2 ring-indigo-400 scale-[0.98]' : ''}
         ${isSelected ? 'ring-2 ring-indigo-500' : ''}
-        ${isOverdue && !task.completed ? 'animate-pulse' : ''}`}
+        ${isOverdue && !task.completed ? 'overdue-glow' : isDueToday && !task.completed ? 'today-glow' : ''}`}
       style={{
         background: 'var(--c-card)',
         border: isOverdue && !task.completed
           ? '1px solid rgba(239,68,68,0.45)'
-          : `1px solid ${isSelected ? 'rgba(99,102,241,0.5)' : 'var(--c-border)'}`,
-        boxShadow: isOverdue && !task.completed
-          ? '0 0 12px rgba(239,68,68,0.18), 0 2px 8px rgba(0,0,0,0.15)'
-          : isSelected
-            ? '0 0 0 3px rgba(99,102,241,0.15), 0 4px 16px rgba(0,0,0,0.2)'
-            : '0 2px 8px rgba(0,0,0,0.15)',
+          : isDueToday && !task.completed
+            ? '1px solid rgba(34,197,94,0.35)'
+            : `1px solid ${isSelected ? 'rgba(99,102,241,0.5)' : 'var(--c-border)'}`,
       }}
     >
       {/* ── Cover bar (Trello style) ── */}
